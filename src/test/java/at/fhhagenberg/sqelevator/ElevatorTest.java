@@ -249,4 +249,11 @@ public class ElevatorTest {
         exception = assertThrows(RemoteException.class, () -> elevator.setFloorService(true, 3));
         assertEquals("Invalid parameter", exception.getMessage());
     }
+
+    @Test
+    public void testWeightDefault() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        assertEquals(0, elevator.getWeight());
+    }
 }
