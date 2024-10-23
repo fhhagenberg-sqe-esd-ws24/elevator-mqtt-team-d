@@ -4,13 +4,13 @@ import java.rmi.RemoteException;
 
 public class Elevator {
     private final int mCapacity;
-    private int mSpeed;
-    private int mAcceleration;
+    private int mSpeed = 0;
+    private int mAcceleration = 0;
     private final int mNumOfFloors;
-    private int mDirection;
-    private int mElevatorDoorStatus;
-    private int mCurrentFloor;
-    private int mTargetFloor;
+    private int mDirection = IElevator.ELEVATOR_DIRECTION_UNCOMMITTED;
+    private int mElevatorDoorStatus = IElevator.ELEVATOR_DOORS_CLOSED;
+    private int mCurrentFloor = 0;
+    private int mTargetFloor = 0;
     private final int mInitWeight;
     private int mCurrentWeight;
     private boolean[] mButtonStatus;
