@@ -15,11 +15,16 @@ public class ElevatorControlSystem implements IElevator {
      * @param mFloors
      * @param mFloorHeight
      */
-    public ElevatorControlSystem(int nrOfElevators, int[] elevatorCapacities, int nrOfFloors, int floorHeight) throws
-            RemoteException {
+    public ElevatorControlSystem(int nrOfElevators, int[] elevatorCapacities, int[] emptyElevatorWeights,
+                                 int nrOfFloors, int floorHeight) throws RemoteException {
         // Check if number of elevators is equal to elevator capacities length
         if (nrOfElevators != elevatorCapacities.length) {
             throw new RemoteException("Mismatch between number of elevators and their capacities!");
+        }
+
+        // Check if number of elevators is equal to empty elevator weights
+        if (nrOfElevators != emptyElevatorWeights.length) {
+            throw new RemoteException("Mismatch between number of elevators and their initial weights!");
         }
 
         mElevators = new Elevator[nrOfElevators];
@@ -28,7 +33,7 @@ public class ElevatorControlSystem implements IElevator {
 
         // Instantiate each elevator
         for (int i = 0; i < mElevators.length; ++i) {
-            mElevators[i] = new Elevator(mFloors.length, elevatorCapacities[i]);
+            mElevators[i] = new Elevator(mFloors.length, elevatorCapacities[i], emptyElevatorWeights[i]);
         }
 
         mStartTimestamp = System.currentTimeMillis();
@@ -131,7 +136,7 @@ public class ElevatorControlSystem implements IElevator {
             throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
         }
 
-        return 0;
+        return mElevators[elevatorNumber - 1].getWeight();
     }
 
     @Override
@@ -186,7 +191,7 @@ public class ElevatorControlSystem implements IElevator {
             throw new RemoteException("Floor " + floor + " does not exist!");
         }
 
-        return false;
+        return mElevators[elevatorNumber - 1].getFloorService(floor);
     }
 
     @Override
@@ -196,7 +201,7 @@ public class ElevatorControlSystem implements IElevator {
             throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
         }
 
-        return 0;
+        return mElevators[elevatorNumber - 1].getTargetFloor();
     }
 
     @Override
@@ -211,12 +216,27 @@ public class ElevatorControlSystem implements IElevator {
 
     @Override
     public void setServicesFloors(int elevatorNumber, int floor, boolean service) throws RemoteException {
+        // Check valid elevator
+        if (!checkValidElevatorNumber(elevatorNumber)) {
+            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
+        }
 
+        // Check valid floor
+        if (!checkValidFloor(floor)) {
+            throw new RemoteException("Floor " + floor + " does not exist!");
+        }
+
+        mElevators[elevatorNumber - 1].setFloorService(service, floor);
     }
 
     @Override
     public void setTarget(int elevatorNumber, int target) throws RemoteException {
+        // Check valid elevator
+        if (!checkValidElevatorNumber(elevatorNumber)) {
+            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
+        }
 
+        mElevators[elevatorNumber - 1].setTargetFloor(target);
     }
 
     @Override
