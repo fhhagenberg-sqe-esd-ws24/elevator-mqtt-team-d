@@ -37,17 +37,21 @@ public class ElevatorControlSystem implements IElevator {
             mElevators[i] = new Elevator(mFloors.length, elevatorCapacities[i], emptyElevatorWeights[i]);
         }
 
+        for (int i = 0; i < mFloors.length; ++i) {
+            mFloors[i] = new Floor();
+        }
+
         mStartTimestamp = System.currentTimeMillis();
     }
 
     private boolean checkValidElevatorNumber(int elevatorNumber) {
         // Check valid elevator
-        return (elevatorNumber < 0 || elevatorNumber >= mElevators.length);
+        return (elevatorNumber >= 0 && elevatorNumber < mElevators.length);
     }
 
     private boolean checkValidFloor(int floor) {
         // Check valid floor
-        return (floor < 0 || floor >= mFloors.length);
+        return (floor >= 0 && floor < mFloors.length);
     }
 
     @Override
