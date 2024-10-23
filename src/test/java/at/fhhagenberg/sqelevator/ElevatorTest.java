@@ -219,4 +219,34 @@ public class ElevatorTest {
         assertEquals(0, elevator.getTargetFloor());
         assertEquals("Invalid parameter", exception.getMessage());
     }
+
+    @Test
+    public void testServiceFloorDefault () {
+        Elevator elevator = new Elevator(2, 10, 100);
+
+        assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(0)));
+        assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(1)));
+    }
+
+    @Test
+    public void testServiceFloor () {
+        Elevator elevator = new Elevator(2, 10, 100);
+
+        assertDoesNotThrow(() -> elevator.setFloorService(true, 1));
+        assertDoesNotThrow(() -> assertTrue(elevator.getFloorService(1)));
+
+        assertDoesNotThrow(() -> elevator.setFloorService(false, 1));
+        assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(1)));
+    }
+
+    @Test
+    public void testServiceFloorThrow () {
+        Elevator elevator = new Elevator(2, 10, 100);
+
+        RemoteException exception = assertThrows(RemoteException.class, () -> elevator.setFloorService(true, -1));
+        assertEquals("Invalid parameter", exception.getMessage());
+
+        exception = assertThrows(RemoteException.class, () -> elevator.setFloorService(true, 3));
+        assertEquals("Invalid parameter", exception.getMessage());
+    }
 }
