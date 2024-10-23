@@ -11,6 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ElevatorTest {
 
+    /**
+     * Tests whether the constructor throws exceptions.
+     */
     @Test
     public void testConstructorThrow() {
         RemoteException exception = assertThrows(RemoteException.class, () -> {
@@ -29,6 +32,9 @@ public class ElevatorTest {
         assertEquals("Invalid constructor parameter", exception.getMessage());
     }
 
+    /**
+     * Tests default value of direction.
+     */
     @Test
     public void testDirectionDefault() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -38,6 +44,9 @@ public class ElevatorTest {
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
+    /**
+     * Tests setter and getter of direction.
+     */
     @Test
     public void testDirections() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -60,6 +69,9 @@ public class ElevatorTest {
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
+    /**
+     * Tests whether the setter methods of direction throws exceptions.
+     */
     @Test
     public void testDirectionThrows() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -79,6 +91,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Tests acceleration method.
+     */
     @Test
     public void testAcceleration() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -94,6 +109,9 @@ public class ElevatorTest {
         assertEquals(-10, elevator.getAcceleration());
     }
 
+    /**
+     * Tests getter and setter of elevator buttons.
+     */
     @Test
     public void testElevatorButton() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -116,6 +134,9 @@ public class ElevatorTest {
         assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(1)));
     }
 
+    /**
+     * Tests whether getElevatorButton throw exceptions.
+     */
     @Test
     public void testGetElevatorButtonThrow() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -133,6 +154,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Tests whether setElevatorButton throw exceptions.
+     */
     @Test
     public void testSetElevatorButtonThrow() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -150,6 +174,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Tests default value of elevator door status.
+     */
     @Test
     public void testElevatorDoorStatusDefault() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -159,6 +186,9 @@ public class ElevatorTest {
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
     }
 
+    /**
+     * Tests setter and getter methods of elevator door status.
+     */
     @Test
     public void testElevatorDoorStatus() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -178,6 +208,9 @@ public class ElevatorTest {
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSING, elevator.getElevatorDoorStatus());
     }
 
+    /**
+     * Tests whether the setter methods of elevator door status throws exceptions.
+     */
     @Test
     public void testElevatorDoorStatusThrow() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -197,6 +230,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Tests the default value of current floor.
+     */
     @Test
     public void testCurrentFloorDefault() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -206,6 +242,9 @@ public class ElevatorTest {
         assertEquals(0, elevator.getCurrentFloor());
     }
 
+    /**
+     * Tests the setter and getter methods of current floor.
+     */
     @Test
     public void testCurrentFloor () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -219,6 +258,9 @@ public class ElevatorTest {
         assertEquals(1, elevator.getCurrentFloor());
     }
 
+    /**
+     * Tests whether the setter method of current floor throws exceptions.
+     */
     @Test
     public void testCurrentFloorThrow () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -234,6 +276,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Test the default value of target floor.
+     */
     @Test
     public void testTargetFloorDefault () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -243,6 +288,9 @@ public class ElevatorTest {
         assertEquals(0, elevator.getCurrentFloor());
     }
 
+    /**
+     * Tests the setter and getter methods of target floor.
+     */
     @Test
     public void testTargetFloor () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -256,6 +304,9 @@ public class ElevatorTest {
         assertEquals(1, elevator.getTargetFloor());
     }
 
+    /**
+     * Tests whether the setter methods of direction throws exceptions.
+     */
     @Test
     public void testTargetFloorThrow () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -271,6 +322,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Tests the default value of floor service.
+     */
     @Test
     public void testServiceFloorDefault () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -281,6 +335,9 @@ public class ElevatorTest {
         assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(1)));
     }
 
+    /**
+     * Tests the getter and setter methods of floor service.
+     */
     @Test
     public void testServiceFloor () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -294,6 +351,9 @@ public class ElevatorTest {
         assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(1)));
     }
 
+    /**
+     * Tests whether the setter methods of service floor throws exceptions.
+     */
     @Test
     public void testServiceFloorThrow () {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -307,6 +367,9 @@ public class ElevatorTest {
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    /**
+     * Tests the getter method of weight.
+     */
     @Test
     public void testWeightDefault() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -316,6 +379,9 @@ public class ElevatorTest {
         assertEquals(0, elevator.getWeight());
     }
 
+    /**
+     * Tests the default, getter and setter methods of speed.
+     */
     @Test
     public void testSpeed() {
         Elevator elevator = assertDoesNotThrow(() -> {
@@ -331,6 +397,9 @@ public class ElevatorTest {
         assertEquals(-10, elevator.getSpeed());
     }
 
+    /**
+     * Tests the getCapcity method.
+     */
     @Test
     public void testCapacity() {
         Elevator elevator = assertDoesNotThrow(() -> {
