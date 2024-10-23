@@ -3,22 +3,6 @@ package at.fhhagenberg.sqelevator;
 import java.rmi.RemoteException;
 
 public class Elevator {
-    /** State variable for elevator doors open.	 */
-    public final static int ELEVATOR_DOORS_OPEN = 1;
-    /** State variable for elevator doors closed. */
-    public final static int ELEVATOR_DOORS_CLOSED = 2;
-    /** State variable for elevator doors opening. */
-    public final static int ELEVATOR_DOORS_OPENING = 3;
-    /** State variable for elevator doors closing. */
-    public final static int ELEVATOR_DOORS_CLOSING = 4;
-
-    /** State variable for elevator status when going up */
-    public final static int ELEVATOR_DIRECTION_UP = 0;
-    /** State variable for elevator status when going down. */
-    public final static int ELEVATOR_DIRECTION_DOWN = 1;
-    /** State variables for elevator status stopped and uncommitted. */
-    public final static int ELEVATOR_DIRECTION_UNCOMMITTED = 2;
-
     private final int mCapacity;
     private int mSpeed;
     private int mAcceleration;
@@ -39,7 +23,7 @@ public class Elevator {
     }
 
     public void setDirection(int direction) throws RemoteException {
-        if(direction < ELEVATOR_DIRECTION_UP || direction > ELEVATOR_DIRECTION_UNCOMMITTED) {
+        if(direction < IElevator.ELEVATOR_DIRECTION_UP || direction > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
             throw new RemoteException("Invalid parameter");
         }
 
@@ -75,7 +59,7 @@ public class Elevator {
     }
 
     public void setElevatorDoorStatus(int doorStatus) throws RemoteException {
-        if(doorStatus < ELEVATOR_DOORS_OPEN || doorStatus >ELEVATOR_DOORS_CLOSING) {
+        if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN || doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
             throw new RemoteException("Invalid parameter");
         }
 
