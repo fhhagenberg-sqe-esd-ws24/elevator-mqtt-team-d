@@ -116,4 +116,45 @@ public class ElevatorTest {
         });
         assertEquals("Invalid parameter", exception.getMessage());
     }
+
+    @Test
+    public void testElevatorDoorStatusDefault() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
+    }
+
+    @Test
+    public void testElevatorDoorStatus() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPEN));
+        assertEquals(IElevator.ELEVATOR_DOORS_OPEN, elevator.getElevatorDoorStatus());
+
+        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSED));
+        assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
+
+        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPENING));
+        assertEquals(IElevator.ELEVATOR_DOORS_OPENING, elevator.getElevatorDoorStatus());
+
+        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSING));
+        assertEquals(IElevator.ELEVATOR_DOORS_CLOSING, elevator.getElevatorDoorStatus());
+    }
+
+    @Test
+    public void testElevatorDoorStatusThrow() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        RemoteException exception = assertThrows(RemoteException.class, () -> {
+            elevator.setElevatorDoorStatus(0);
+        });
+        assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
+        assertEquals("Invalid parameter", exception.getMessage());
+
+        exception = assertThrows(RemoteException.class, () -> {
+            elevator.setElevatorDoorStatus(5);
+        });
+        assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
+        assertEquals("Invalid parameter", exception.getMessage());
+    }
 }
