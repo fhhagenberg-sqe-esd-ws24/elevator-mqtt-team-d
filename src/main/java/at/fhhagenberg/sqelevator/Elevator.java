@@ -10,12 +10,22 @@ public class Elevator {
     private int mDirection;
     private int mElevatorDoorStatus;
     private int mCurrentFloor;
+    private int mTargetFloor;
+    private final int mInitWeight;
+    private int mCurrentWeight;
     private boolean[] mButtonStatus;
+    private boolean[] mFloorService;
 
-    public Elevator(int numOfFloors, int capacity) {
+    public Elevator(int numOfFloors, int capacity, int initWeight) {
         mCapacity = capacity;
         mNumOfFloors = numOfFloors;
+        mInitWeight = initWeight;
+        mCurrentWeight = initWeight;
         mButtonStatus = new boolean[numOfFloors];
+        mFloorService = new boolean[numOfFloors];
+        for(boolean floorService : mFloorService) {
+            floorService = true;
+        }
     }
 
     public int getDirection() {
@@ -39,7 +49,7 @@ public class Elevator {
     }
 
     public boolean getElevatorButton(int floor) throws RemoteException {
-        if(floor >= mNumOfFloors) {
+        if(floor < 0 || floor >= mNumOfFloors) {
             throw new RemoteException("Invalid parameter");
         }
 
@@ -47,7 +57,7 @@ public class Elevator {
     }
 
     public void setElevatorButton(boolean buttonStatus, int floor) throws RemoteException {
-        if(floor >= mNumOfFloors) {
+        if(floor < 0 || floor >= mNumOfFloors) {
             throw new RemoteException("Invalid parameter");
         }
 
@@ -71,10 +81,43 @@ public class Elevator {
     }
 
     public void setCurrentFloor(int currentFloor) throws RemoteException {
-        if(currentFloor >= mNumOfFloors)
+        if(currentFloor < 0 || currentFloor >= mNumOfFloors) {
             throw new RemoteException("Invalid parameter");
+        }
 
         mCurrentFloor = currentFloor;
+    }
+
+    public int getTargetFloor() {
+        return mTargetFloor;
+    }
+
+    public void setTargetFloor(int targetFloor) throws RemoteException {
+        if(targetFloor < 0 || targetFloor >= mNumOfFloors){
+            throw new RemoteException("Invalid parameter");
+        }
+
+        mTargetFloor = targetFloor;
+    }
+
+    public boolean getFloorService(int floor) throws RemoteException{
+        if(floor < 0 || floor >= mNumOfFloors) {
+            throw new RemoteException("Invalid parameter");
+        }
+
+        return mFloorService[floor];
+    }
+
+    public void setFloorService(boolean service, int floor) throws  RemoteException {
+        if(floor < 1 || floor >= mNumOfFloors) {
+            throw new RemoteException("Invalid parameter");
+        }
+
+        mFloorService[floor] = service;
+    }
+
+    public int getWeight() {
+        return mCurrentWeight - mInitWeight;
     }
 
     public int getSpeed() {
