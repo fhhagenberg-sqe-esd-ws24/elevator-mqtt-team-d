@@ -16,7 +16,17 @@ public class Elevator {
     private boolean[] mButtonStatus;
     private boolean[] mFloorService;
 
-    public Elevator(int numOfFloors, int capacity, int initWeight) {
+    public Elevator(int numOfFloors, int capacity, int initWeight) throws RemoteException {
+        if(numOfFloors < 0)
+            throw new RemoteException("Invalid constructor parameter");
+
+        if(capacity < 0)
+            throw new RemoteException("Invalid constructor parameter");
+
+        if(initWeight < 0)
+            throw new RemoteException("Invalid constructor parameter");
+
+
         mCapacity = capacity;
         mNumOfFloors = numOfFloors;
         mInitWeight = initWeight;
