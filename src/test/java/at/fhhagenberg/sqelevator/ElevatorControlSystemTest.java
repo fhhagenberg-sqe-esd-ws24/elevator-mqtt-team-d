@@ -26,6 +26,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test that the number of elevators is correctly retrieved.
+     */
     @Test
     public void testGetElevatorNum() {
         try {
@@ -36,6 +39,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test that the number of floors is correctly retrieved.
+     */
     @Test
     public void testGetFloorNum() {
         try {
@@ -46,6 +52,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test that the height of the floors is correctly retrieved.
+     */
     @Test
     public void testGetFloorHeight() {
         try {
@@ -56,6 +65,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test setting and getting the committed direction for elevators.
+     */
     @Test
     public void testSetAndGetCommittedDirection() {
         try {
@@ -70,6 +82,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting the speed of the elevator after setting a target and direction.
+     */
     @Test
     public void testGetAndSetElevatorSpeed() {
         try {
@@ -83,6 +98,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test setting and getting the floor services for elevators.
+     */
     @Test
     public void testElevatorFloorServices() {
         try {
@@ -95,6 +113,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting and setting the elevator button status.
+     */
     @Test
     public void testGetAndSetElevatorButton() {
         try {
@@ -107,6 +128,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting the door status of the elevator.
+     */
     @Test
     public void testGetElevatorDoorStatus() {
         try {
@@ -117,6 +141,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting the weight of the elevator.
+     */
     @Test
     public void testGetElevatorWeight() {
         try {
@@ -128,10 +155,13 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting the elevator's capacity.
+     */
     @Test
     public void testGetElevatorCapacity() {
         try {
-            // Initially, the elevator's weight should be 0 (no passengers).
+            // Verify the capacities for different elevators
             assertEquals(10, system.getElevatorCapacity(0));
             assertEquals(12, system.getElevatorCapacity(1));
             assertEquals(8, system.getElevatorCapacity(2));
@@ -141,8 +171,11 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting the current floor of elevators.
+     */
     @Test
-    public void testGetElevatorFloor(){
+    public void testGetElevatorFloor() {
         try {
             assertEquals(0, system.getElevatorFloor(0));
             assertEquals(0, system.getElevatorFloor(1));
@@ -152,6 +185,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test getting the current position of elevators.
+     */
     @Test
     public void testGetElevatorPosition() {
         try {
@@ -162,10 +198,13 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test floor button states.
+     */
     @Test
     public void testFloorButtonUpAndDown() {
         // Initially, no floor buttons should be pressed.
-        try{
+        try {
             assertFalse(system.getFloorButtonUp(2));
             assertFalse(system.getFloorButtonDown(2));
         } catch (RemoteException e) {
@@ -174,6 +213,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test setting and getting target floors for elevators.
+     */
     @Test
     public void testSetAndGetTargetFloor() {
         try {
@@ -188,6 +230,9 @@ public class ElevatorControlSystemTest {
         }
     }
 
+    /**
+     * Test the clock tick mechanism.
+     */
     @Test
     public void testClockTick() {
         try {
@@ -203,7 +248,11 @@ public class ElevatorControlSystemTest {
         }
     }
 
-    // tests for exceptions
+// tests for exceptions
+
+    /**
+     * Test that invalid elevator numbers in getCommittedDirection and getElevatorAccel throw RemoteExceptions.
+     */
     @Test
     public void testInvalidElevatorNumberThrowsException() {
         assertThrows(RemoteException.class, () -> system.getCommittedDirection(5));
@@ -213,6 +262,9 @@ public class ElevatorControlSystemTest {
         assertThrows(RemoteException.class, () -> system.getElevatorAccel(-1));
     }
 
+    /**
+     * Test that invalid floor numbers in getFloorButtonDown and getFloorButtonUp throw RemoteExceptions.
+     */
     @Test
     public void testInvalidFloorThrowsException() {
         assertThrows(RemoteException.class, () -> system.getFloorButtonDown(6));
@@ -222,6 +274,9 @@ public class ElevatorControlSystemTest {
         assertThrows(RemoteException.class, () -> system.getFloorButtonUp(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers and targets in set and getTarget throw RemoteExceptions.
+     */
     @Test
     public void testInvalidGetAndSetTargetThrowsException() {
         assertThrows(RemoteException.class, () -> system.setTarget(6, 0));
@@ -234,6 +289,9 @@ public class ElevatorControlSystemTest {
         assertThrows(RemoteException.class, () -> system.getTarget(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers and floor numbers in set and getServicesFloors throw RemoteExceptions.
+     */
     @Test
     public void testInvalidGetAndSetServiceFloorsThrowsException() {
         assertThrows(RemoteException.class, () -> system.setServicesFloors(6, 2, true));
@@ -249,6 +307,9 @@ public class ElevatorControlSystemTest {
         assertThrows(RemoteException.class, () -> system.getServicesFloors(0, -7));
     }
 
+    /**
+     * Test that invalid elevator numbers and directions in set and getCommitedDirection throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetAndSetCommittedDirectionThrowsException() {
         assertThrows(RemoteException.class, () -> system.setCommittedDirection(6, 2));
@@ -261,42 +322,63 @@ public class ElevatorControlSystemTest {
         assertThrows(RemoteException.class, () -> system.getCommittedDirection(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers in getElevatorCapacity throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorCapacityThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorCapacity(6));
         assertThrows(RemoteException.class, () -> system.getElevatorCapacity(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers in getElevatorWeight throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorHeightThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorWeight(6));
         assertThrows(RemoteException.class, () -> system.getElevatorWeight(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers in getElevatorSpeed throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorSpeedThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorSpeed(6));
         assertThrows(RemoteException.class, () -> system.getElevatorSpeed(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers in getElevatorPosition throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorPositionThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorPosition(6));
         assertThrows(RemoteException.class, () -> system.getElevatorPosition(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers in getElevatorFloor throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorFloorThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorFloor(6));
         assertThrows(RemoteException.class, () -> system.getElevatorFloor(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers in getElevatorDoorStatus throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorDoorStatusThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorDoorStatus(6));
         assertThrows(RemoteException.class, () -> system.getElevatorDoorStatus(-1));
     }
 
+    /**
+     * Test that invalid elevator numbers and floors in getElevatorButton throws RemoteExceptions.
+     */
     @Test
     public void testInvalidGetElevatorButtonStatusThrowsException() {
         assertThrows(RemoteException.class, () -> system.getElevatorButton(6, 0));
