@@ -1,6 +1,6 @@
 package at.fhhagenberg.sqelevator;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import java.rmi.RemoteException;
@@ -14,56 +14,106 @@ public class ElevatorTest {
     public void testDirectionDefault() {
         Elevator elevator = new Elevator(5, 10, 100);
 
-        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
+        assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
     @Test
     public void testDirections() {
         Elevator elevator = new Elevator(5, 10, 100);
 
-        Assertions.assertDoesNotThrow(() -> {
+        assertDoesNotThrow(() -> {
             elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UP);
         });
-        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_UP, elevator.getDirection());
+        assertEquals(IElevator.ELEVATOR_DIRECTION_UP, elevator.getDirection());
 
-        Assertions.assertDoesNotThrow(() -> {
+        assertDoesNotThrow(() -> {
             elevator.setDirection(IElevator.ELEVATOR_DIRECTION_DOWN);
         });
-        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_DOWN, elevator.getDirection());
+        assertEquals(IElevator.ELEVATOR_DIRECTION_DOWN, elevator.getDirection());
 
-        Assertions.assertDoesNotThrow(() -> {
+        assertDoesNotThrow(() -> {
             elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
         });
-        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
+        assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
     @Test
     public void testDirectionThrows() {
         Elevator elevator = new Elevator(5, 10, 100);
 
-        RemoteException exception = Assertions.assertThrows(RemoteException.class, () -> {
+        RemoteException exception = assertThrows(RemoteException.class, () -> {
             elevator.setDirection(-1);
         });
-        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
-        Assertions.assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
+        assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = Assertions.assertThrows(RemoteException.class, () -> {
+        exception = assertThrows(RemoteException.class, () -> {
             elevator.setDirection(3);
         });
-        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
-        Assertions.assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
+        assertEquals("Invalid parameter", exception.getMessage());
     }
 
     @Test
     public void testAcceleration() {
         Elevator elevator = new Elevator(5, 10, 100);
 
-        Assertions.assertEquals(0, elevator.getAcceleration());
+        assertEquals(0, elevator.getAcceleration());
 
         elevator.setAcceleration(10);
-        Assertions.assertEquals(10, elevator.getAcceleration());
+        assertEquals(10, elevator.getAcceleration());
 
         elevator.setAcceleration(-10);
-        Assertions.assertEquals(-10, elevator.getAcceleration());
+        assertEquals(-10, elevator.getAcceleration());
+    }
+
+    @Test
+    public void testElevatorButton() {
+        Elevator elevator = new Elevator(2, 10, 100);
+
+        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(0)));
+        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(1)));
+
+        assertDoesNotThrow(() -> elevator.setElevatorButton(true, 0));
+        assertDoesNotThrow(() -> assertEquals(true, elevator.getElevatorButton(0)));
+
+        assertDoesNotThrow(() -> elevator.setElevatorButton(true, 1));
+        assertDoesNotThrow(() -> assertEquals(true, elevator.getElevatorButton(1)));
+
+        assertDoesNotThrow(() -> elevator.setElevatorButton(false, 0));
+        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(0)));
+
+        assertDoesNotThrow(() -> elevator.setElevatorButton(false, 1));
+        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(1)));
+    }
+
+    @Test
+    public void testGetElevatorButtonThrow() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        RemoteException exception = assertThrows(RemoteException.class, () -> {
+            elevator.getElevatorButton(-1);
+        });
+        assertEquals("Invalid parameter", exception.getMessage());
+
+        exception = assertThrows(RemoteException.class, () -> {
+            elevator.getElevatorButton(6);
+        });
+        assertEquals("Invalid parameter", exception.getMessage());
+    }
+
+    @Test
+    public void testSetElevatorButtonThrow() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        RemoteException exception = assertThrows(RemoteException.class, () -> {
+            elevator.setElevatorButton(true, -1);
+        });
+        assertEquals("Invalid parameter", exception.getMessage());
+
+        exception = assertThrows(RemoteException.class, () -> {
+            elevator.setElevatorButton(true, 6);
+        });
+        assertEquals("Invalid parameter", exception.getMessage());
     }
 }
