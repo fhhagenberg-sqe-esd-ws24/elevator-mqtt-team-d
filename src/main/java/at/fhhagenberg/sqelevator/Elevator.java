@@ -3,11 +3,21 @@ package at.fhhagenberg.sqelevator;
 import java.rmi.RemoteException;
 
 public class Elevator {
-    public enum ButtonStatus {
-        Inactive,
-        Down,
-        Up
-    }
+    /** State variable for elevator doors open.	 */
+    public final static int ELEVATOR_DOORS_OPEN = 1;
+    /** State variable for elevator doors closed. */
+    public final static int ELEVATOR_DOORS_CLOSED = 2;
+    /** State variable for elevator doors opening. */
+    public final static int ELEVATOR_DOORS_OPENING = 3;
+    /** State variable for elevator doors closing. */
+    public final static int ELEVATOR_DOORS_CLOSING = 4;
+
+    /** State variable for elevator status when going up */
+    public final static int ELEVATOR_DIRECTION_UP = 0;
+    /** State variable for elevator status when going down. */
+    public final static int ELEVATOR_DIRECTION_DOWN = 1;
+    /** State variables for elevator status stopped and uncommitted. */
+    public final static int ELEVATOR_DIRECTION_UNCOMMITTED = 2;
 
     private final int mCapacity;
     private int mSpeed;
@@ -16,23 +26,23 @@ public class Elevator {
     private int mDirection;
     private int mElevatorDoorStatus;
     private int mCurrentFloor;
-
-    private ButtonStatus[] mButtonStatus;
+    private boolean[] mButtonStatus;
 
     public Elevator(int numOfFloors, int capacity) {
         mCapacity = capacity;
         mNumOfFloors = numOfFloors;
-        mButtonStatus = new ButtonStatus[numOfFloors];
-        for(ButtonStatus buttonStatus : mButtonStatus) {
-            buttonStatus = ButtonStatus.Inactive;
-        }
+        mButtonStatus = new boolean[numOfFloors];
     }
 
     public int getDirection() {
         return mDirection;
     }
 
-    public void setDirection(int direction) {
+    public void setDirection(int direction) throws RemoteException {
+        if(direction < ELEVATOR_DIRECTION_UP || direction > ELEVATOR_DIRECTION_UNCOMMITTED) {
+            throw new RemoteException("Invalid parameter");
+        }
+
         mDirection = direction;
     }
 
@@ -44,7 +54,7 @@ public class Elevator {
         mAcceleration = acceleration;
     }
 
-    public ButtonStatus getElevatorButton(int floor) throws RemoteException {
+    public boolean getElevatorButton(int floor) throws RemoteException {
         if(floor >= mNumOfFloors) {
             throw new RemoteException("Invalid parameter");
         }
@@ -52,7 +62,7 @@ public class Elevator {
         return mButtonStatus[floor];
     }
 
-    public void setElevatorButton(ButtonStatus buttonStatus, int floor) throws RemoteException {
+    public void setElevatorButton(boolean buttonStatus, int floor) throws RemoteException {
         if(floor >= mNumOfFloors) {
             throw new RemoteException("Invalid parameter");
         }
@@ -64,7 +74,11 @@ public class Elevator {
         return mElevatorDoorStatus;
     }
 
-    public void setElevatorDoorStatus(int doorStatus) {
+    public void setElevatorDoorStatus(int doorStatus) throws RemoteException {
+        if(doorStatus < ELEVATOR_DOORS_OPEN || doorStatus >ELEVATOR_DOORS_CLOSING) {
+            throw new RemoteException("Invalid parameter");
+        }
+
         mElevatorDoorStatus = doorStatus;
     }
 
