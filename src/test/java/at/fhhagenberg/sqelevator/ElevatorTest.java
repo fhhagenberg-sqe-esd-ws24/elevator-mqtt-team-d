@@ -54,4 +54,16 @@ public class ElevatorTest {
         Assertions.assertEquals("Invalid parameter", exception.getMessage());
     }
 
+    @Test
+    public void testAcceleration() {
+        Elevator elevator = new Elevator(5, 10, 100);
+
+        Assertions.assertEquals(0, elevator.getAcceleration());
+
+        elevator.setAcceleration(10);
+        Assertions.assertEquals(10, elevator.getAcceleration());
+
+        elevator.setAcceleration(-10);
+        Assertions.assertEquals(-10, elevator.getAcceleration());
+    }
 }
