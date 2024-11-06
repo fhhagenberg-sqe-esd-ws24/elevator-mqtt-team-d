@@ -12,22 +12,23 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ElevatorTest {
 
     /**
-     * Tests whether the constructor throws exceptions.
+     * Tests constructor call with illegal number of floors.
      */
     @Test
-    public void testConstructorThrow() {
-        RemoteException exception = assertThrows(RemoteException.class, () -> {
-            new Elevator(-10, 1, 1);
+    public void testConstructorIllegalNumOfFloors() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            new Elevator(-10, 1);
         });
         assertEquals("Invalid constructor parameter", exception.getMessage());
+    }
 
-        exception = assertThrows(RemoteException.class, () -> {
-            new Elevator(10, -10, 1);
-        });
-        assertEquals("Invalid constructor parameter", exception.getMessage());
-
-        exception = assertThrows(RemoteException.class, () -> {
-            new Elevator(10, 1, -10);
+    /**
+     * Tests constructor call with illegal capacity.
+     */
+    @Test
+    public void testConstructorIllegalCapacity() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            new Elevator(10, -1);
         });
         assertEquals("Invalid constructor parameter", exception.getMessage());
     }
@@ -37,9 +38,7 @@ public class ElevatorTest {
      */
     @Test
     public void testDirectionDefault() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
@@ -49,23 +48,12 @@ public class ElevatorTest {
      */
     @Test
     public void testDirections() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
-
-        assertDoesNotThrow(() -> {
-            elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UP);
-        });
+        Elevator elevator = new Elevator(5, 10);
+        elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UP);
         assertEquals(IElevator.ELEVATOR_DIRECTION_UP, elevator.getDirection());
-
-        assertDoesNotThrow(() -> {
-            elevator.setDirection(IElevator.ELEVATOR_DIRECTION_DOWN);
-        });
+        elevator.setDirection(IElevator.ELEVATOR_DIRECTION_DOWN);
         assertEquals(IElevator.ELEVATOR_DIRECTION_DOWN, elevator.getDirection());
-
-        assertDoesNotThrow(() -> {
-            elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
-        });
+        elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
@@ -74,17 +62,15 @@ public class ElevatorTest {
      */
     @Test
     public void testDirectionThrows() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setDirection(-1);
         });
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> {
+        exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setDirection(3);
         });
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
@@ -96,10 +82,7 @@ public class ElevatorTest {
      */
     @Test
     public void testAcceleration() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
-
+        Elevator elevator = new Elevator(5, 10);
         assertEquals(0, elevator.getAcceleration());
 
         elevator.setAcceleration(10);
@@ -114,24 +97,22 @@ public class ElevatorTest {
      */
     @Test
     public void testElevatorButton() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(0)));
-        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(1)));
+        assertFalse(elevator.getElevatorButton(0));
+        assertFalse(elevator.getElevatorButton(1));
 
-        assertDoesNotThrow(() -> elevator.setElevatorButton(true, 0));
-        assertDoesNotThrow(() -> assertEquals(true, elevator.getElevatorButton(0)));
+        elevator.setElevatorButton(true, 0);
+        assertTrue(elevator.getElevatorButton(0));
 
-        assertDoesNotThrow(() -> elevator.setElevatorButton(true, 1));
-        assertDoesNotThrow(() -> assertEquals(true, elevator.getElevatorButton(1)));
+        elevator.setElevatorButton(true, 1);
+        assertTrue(elevator.getElevatorButton(1));
 
-        assertDoesNotThrow(() -> elevator.setElevatorButton(false, 0));
-        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(0)));
+        elevator.setElevatorButton(false, 0);
+        assertFalse(elevator.getElevatorButton(0));
 
-        assertDoesNotThrow(() -> elevator.setElevatorButton(false, 1));
-        assertDoesNotThrow(() -> assertEquals(false, elevator.getElevatorButton(1)));
+        elevator.setElevatorButton(false, 1);
+        assertFalse(elevator.getElevatorButton(1));
     }
 
     /**
@@ -139,16 +120,14 @@ public class ElevatorTest {
      */
     @Test
     public void testGetElevatorButtonThrow() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.getElevatorButton(-1);
         });
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> {
+        exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.getElevatorButton(6);
         });
         assertEquals("Invalid parameter", exception.getMessage());
@@ -159,16 +138,14 @@ public class ElevatorTest {
      */
     @Test
     public void testSetElevatorButtonThrow() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorButton(true, -1);
         });
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> {
+        exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorButton(true, 6);
         });
         assertEquals("Invalid parameter", exception.getMessage());
@@ -179,10 +156,7 @@ public class ElevatorTest {
      */
     @Test
     public void testElevatorDoorStatusDefault() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
-
+        Elevator elevator = new Elevator(5, 10);
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
     }
 
@@ -191,20 +165,18 @@ public class ElevatorTest {
      */
     @Test
     public void testElevatorDoorStatus() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
-        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPEN));
+        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPEN);
         assertEquals(IElevator.ELEVATOR_DOORS_OPEN, elevator.getElevatorDoorStatus());
 
-        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSED));
+        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSED);
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
 
-        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPENING));
+        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPENING);
         assertEquals(IElevator.ELEVATOR_DOORS_OPENING, elevator.getElevatorDoorStatus());
 
-        assertDoesNotThrow(() -> elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSING));
+        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSING);
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSING, elevator.getElevatorDoorStatus());
     }
 
@@ -213,17 +185,15 @@ public class ElevatorTest {
      */
     @Test
     public void testElevatorDoorStatusThrow() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorDoorStatus(0);
         });
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> {
+        exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorDoorStatus(5);
         });
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
@@ -235,9 +205,7 @@ public class ElevatorTest {
      */
     @Test
     public void testCurrentFloorDefault() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
         assertEquals(0, elevator.getCurrentFloor());
     }
@@ -247,14 +215,12 @@ public class ElevatorTest {
      */
     @Test
     public void testCurrentFloor () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        assertDoesNotThrow(() -> elevator.setCurrentFloor(0));
+        elevator.setCurrentFloor(0);
         assertEquals(0, elevator.getCurrentFloor());
 
-        assertDoesNotThrow(() -> elevator.setCurrentFloor(1));
+        elevator.setCurrentFloor(1);
         assertEquals(1, elevator.getCurrentFloor());
     }
 
@@ -263,15 +229,14 @@ public class ElevatorTest {
      */
     @Test
     public void testCurrentFloorThrow () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> elevator.setCurrentFloor(-1));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> elevator.setCurrentFloor(-1));
         assertEquals(0, elevator.getCurrentFloor());
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> elevator.setCurrentFloor(3));
+        exception = assertThrows(IllegalArgumentException.class, () -> elevator.setCurrentFloor(3));
         assertEquals(0, elevator.getCurrentFloor());
         assertEquals("Invalid parameter", exception.getMessage());
     }
@@ -281,10 +246,7 @@ public class ElevatorTest {
      */
     @Test
     public void testTargetFloorDefault () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
-
+        Elevator elevator = new Elevator(2, 10);
         assertEquals(0, elevator.getCurrentFloor());
     }
 
@@ -293,14 +255,12 @@ public class ElevatorTest {
      */
     @Test
     public void testTargetFloor () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        assertDoesNotThrow(() -> elevator.setTargetFloor(0));
+        elevator.setTargetFloor(0);
         assertEquals(0, elevator.getTargetFloor());
 
-        assertDoesNotThrow(() -> elevator.setTargetFloor(1));
+        elevator.setTargetFloor(1);
         assertEquals(1, elevator.getTargetFloor());
     }
 
@@ -309,15 +269,14 @@ public class ElevatorTest {
      */
     @Test
     public void testTargetFloorThrow () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> elevator.setTargetFloor(-1));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> elevator.setTargetFloor(-1));
         assertEquals(0, elevator.getTargetFloor());
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> elevator.setTargetFloor(3));
+        exception = assertThrows(IllegalArgumentException.class, () -> elevator.setTargetFloor(3));
         assertEquals(0, elevator.getTargetFloor());
         assertEquals("Invalid parameter", exception.getMessage());
     }
@@ -327,12 +286,10 @@ public class ElevatorTest {
      */
     @Test
     public void testServiceFloorDefault () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(0)));
-        assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(1)));
+        assertTrue(elevator.getFloorService(0));
+        assertTrue(elevator.getFloorService(1));
     }
 
     /**
@@ -340,15 +297,13 @@ public class ElevatorTest {
      */
     @Test
     public void testServiceFloor () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        assertDoesNotThrow(() -> elevator.setFloorService(true, 1));
-        assertDoesNotThrow(() -> assertTrue(elevator.getFloorService(1)));
+        elevator.setFloorService(true, 1);
+        assertTrue(elevator.getFloorService(1));
 
-        assertDoesNotThrow(() -> elevator.setFloorService(false, 1));
-        assertDoesNotThrow(() -> assertFalse(elevator.getFloorService(1)));
+        elevator.setFloorService(false, 1);
+        assertFalse(elevator.getFloorService(1));
     }
 
     /**
@@ -356,14 +311,13 @@ public class ElevatorTest {
      */
     @Test
     public void testServiceFloorThrow () {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(2, 10, 100);
-        });
+        Elevator elevator = new Elevator(2, 10);
 
-        RemoteException exception = assertThrows(RemoteException.class, () -> elevator.setFloorService(true, -1));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> elevator.setFloorService(true, -1));
         assertEquals("Invalid parameter", exception.getMessage());
 
-        exception = assertThrows(RemoteException.class, () -> elevator.setFloorService(true, 3));
+        exception = assertThrows(IllegalArgumentException.class, () -> elevator.setFloorService(true, 3));
         assertEquals("Invalid parameter", exception.getMessage());
     }
 
@@ -372,11 +326,25 @@ public class ElevatorTest {
      */
     @Test
     public void testWeightDefault() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
         assertEquals(0, elevator.getWeight());
+    }
+
+    /**
+     * Tests the default, getter and setter methods of weight.
+     */
+    @Test
+    public void testWeight() {
+        Elevator elevator = new Elevator(5, 10);
+
+        assertEquals(0, elevator.getWeight());
+
+        elevator.setWeight(10);
+        assertEquals(10, elevator.getWeight());
+
+        elevator.setWeight(-10);
+        assertEquals(-10, elevator.getWeight());
     }
 
     /**
@@ -384,9 +352,7 @@ public class ElevatorTest {
      */
     @Test
     public void testSpeed() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
         assertEquals(0, elevator.getSpeed());
 
@@ -402,9 +368,7 @@ public class ElevatorTest {
      */
     @Test
     public void testCapacity() {
-        Elevator elevator = assertDoesNotThrow(() -> {
-            return new Elevator(5, 10, 100);
-        });
+        Elevator elevator = new Elevator(5, 10);
 
         assertEquals(10, elevator.getCapacity());
     }
