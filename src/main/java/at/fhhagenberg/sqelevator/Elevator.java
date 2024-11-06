@@ -1,6 +1,7 @@
 package at.fhhagenberg.sqelevator;
 
 import java.rmi.RemoteException;
+import java.util.Arrays;
 
 public class Elevator {
     private final int mCapacity;
@@ -11,40 +12,32 @@ public class Elevator {
     private int mElevatorDoorStatus = IElevator.ELEVATOR_DOORS_CLOSED;
     private int mCurrentFloor = 0;
     private int mTargetFloor = 0;
-    private final int mInitWeight;
-    private int mCurrentWeight;
-    private boolean[] mButtonStatus;
-    private boolean[] mFloorService;
+    private int mCurrentWeight = 0;
+    private final boolean[] mButtonStatus;
+    private final boolean[] mFloorService;
 
-    public Elevator(int numOfFloors, int capacity, int initWeight) throws RemoteException {
+    public Elevator(int numOfFloors, int capacity) {
         if(numOfFloors < 0)
-            throw new RemoteException("Invalid constructor parameter");
+            throw new IllegalArgumentException("Invalid constructor parameter");
 
         if(capacity < 0)
-            throw new RemoteException("Invalid constructor parameter");
-
-        if(initWeight < 0)
-            throw new RemoteException("Invalid constructor parameter");
-
+            throw new IllegalArgumentException("Invalid constructor parameter");
 
         mCapacity = capacity;
         mNumOfFloors = numOfFloors;
-        mInitWeight = initWeight;
-        mCurrentWeight = initWeight;
         mButtonStatus = new boolean[numOfFloors];
         mFloorService = new boolean[numOfFloors];
-        for(boolean floorService : mFloorService) {
-            floorService = true;
-        }
+        Arrays.fill(mButtonStatus, false);
+        Arrays.fill(mFloorService, true);
     }
 
     public int getDirection() {
         return mDirection;
     }
 
-    public void setDirection(int direction) throws RemoteException {
+    public void setDirection(int direction) {
         if(direction < IElevator.ELEVATOR_DIRECTION_UP || direction > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         mDirection = direction;
@@ -58,17 +51,17 @@ public class Elevator {
         mAcceleration = acceleration;
     }
 
-    public boolean getElevatorButton(int floor) throws RemoteException {
+    public boolean getElevatorButton(int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         return mButtonStatus[floor];
     }
 
-    public void setElevatorButton(boolean buttonStatus, int floor) throws RemoteException {
+    public void setElevatorButton(boolean buttonStatus, int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         mButtonStatus[floor] = buttonStatus;
@@ -78,9 +71,9 @@ public class Elevator {
         return mElevatorDoorStatus;
     }
 
-    public void setElevatorDoorStatus(int doorStatus) throws RemoteException {
+    public void setElevatorDoorStatus(int doorStatus) {
         if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN || doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         mElevatorDoorStatus = doorStatus;
@@ -90,9 +83,9 @@ public class Elevator {
         return mCurrentFloor;
     }
 
-    public void setCurrentFloor(int currentFloor) throws RemoteException {
+    public void setCurrentFloor(int currentFloor) {
         if(currentFloor < 0 || currentFloor >= mNumOfFloors) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         mCurrentFloor = currentFloor;
@@ -102,32 +95,40 @@ public class Elevator {
         return mTargetFloor;
     }
 
-    public void setTargetFloor(int targetFloor) throws RemoteException {
+    public void setTargetFloor(int targetFloor) {
         if(targetFloor < 0 || targetFloor >= mNumOfFloors){
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         mTargetFloor = targetFloor;
     }
 
-    public boolean getFloorService(int floor) throws RemoteException{
+    public boolean getFloorService(int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         return mFloorService[floor];
     }
 
-    public void setFloorService(boolean service, int floor) throws  RemoteException {
+    public void setFloorService(boolean service, int floor) {
         if(floor < 1 || floor >= mNumOfFloors) {
-            throw new RemoteException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid parameter");
         }
 
         mFloorService[floor] = service;
     }
 
     public int getWeight() {
-        return mCurrentWeight - mInitWeight;
+        return mCurrentWeight;
+    }
+
+    public void setWeight(int weight) {
+        if(weight < 0) {
+            throw new IllegalArgumentException("Invalid parameter");
+        }
+
+        mCurrentWeight = weight;
     }
 
     public int getSpeed() {
