@@ -140,6 +140,10 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(1)).getTarget(0);
     }
 
+    /**
+     * Test if the updated topics are correct.
+     * @throws Exception if PLC call fails
+     */
     @Test
     public void testGetUpdateTopics() throws Exception{
         when(plcMock.getCommittedDirection(0)).thenReturn(ELEVATOR_DIRECTION_UP);
@@ -183,6 +187,10 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(1)).getTarget(0);
     }
 
+    /**
+     * Test multiple updates of the data via the PLC.
+     * @throws Exception if PLC call fails
+     */
     @Test
     public void testMultipleUpdates() throws Exception {
         when(plcMock.getCommittedDirection(0)).thenReturn(ELEVATOR_DIRECTION_UP);
@@ -295,5 +303,4 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(2)).getServicesFloors(0, 3);
         verify(plcMock, times(2)).getTarget(0);
     }
-
 }

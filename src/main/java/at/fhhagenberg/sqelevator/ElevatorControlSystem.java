@@ -212,11 +212,18 @@ public class ElevatorControlSystem {
         return MqttTopics.FLOOR_TOPIC + "/" + floorNumber + "/" + subtopic;
     }
 
-    // helper functions for testing
+    /**
+     * Returns the elevators. For testing purposes only.
+     * @return The elevators.
+     */
     public Elevator[] getElevators() {
         return mElevators;
     }
 
+    /**
+     * Returns the floors. For testing purposes only.
+     * @return The floors.
+     */
     public Floor[] getFloors() {
         return mFloors;
     }
