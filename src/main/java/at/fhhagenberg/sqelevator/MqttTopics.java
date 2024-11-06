@@ -3,7 +3,6 @@ package at.fhhagenberg.sqelevator;
 public class MqttTopics {
     public static final String ELEVATOR_TOPIC = "elevator";
     public static final String CAPACITY_SUBTOPIC = "capacity";
-    public static final String TOTAL_FLOORS_SUBTOPIC = "total_floors";
     public static final String SPEED_SUBTOPIC = "speed";
     public static final String ACCELERATION_SUBTOPIC = "acceleration";
     public static final String DIRECTION_SUBTOPIC = "direction";

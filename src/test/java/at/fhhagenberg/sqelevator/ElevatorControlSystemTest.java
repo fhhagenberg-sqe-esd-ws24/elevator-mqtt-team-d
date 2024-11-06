@@ -8,6 +8,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
+import java.util.Set;
+
 import static at.fhhagenberg.sqelevator.IElevator.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -119,7 +121,6 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(1)).getElevatorButton(0, 3);
         verify(plcMock, times(1)).getElevatorDoorStatus(0);
         verify(plcMock, times(1)).getElevatorFloor(0);
-        //verify(plcMock, times(1)).getElevatorPosition(0);
         verify(plcMock, times(1)).getElevatorSpeed(0);
         verify(plcMock, times(1)).getElevatorWeight(0);
         verify(plcMock, times(1)).getElevatorCapacity(0);
@@ -132,7 +133,6 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(1)).getFloorButtonUp(1);
         verify(plcMock, times(1)).getFloorButtonUp(2);
         verify(plcMock, times(1)).getFloorButtonUp(3);
-
         verify(plcMock, times(1)).getFloorNum();
         verify(plcMock, times(1)).getServicesFloors(0, 1);
         verify(plcMock, times(1)).getServicesFloors(0, 2);
@@ -140,6 +140,47 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(1)).getTarget(0);
     }
 
+    @Test
+    public void testGetUpdateTopics() throws Exception{
+        when(plcMock.getCommittedDirection(0)).thenReturn(ELEVATOR_DIRECTION_UP);
+        when(plcMock.getElevatorAccel(0)).thenReturn(30);
+        when(plcMock.getElevatorButton(0, 0)).thenReturn(true);
+        when(plcMock.getElevatorDoorStatus(0)).thenReturn(ELEVATOR_DOORS_OPEN);
+        when(plcMock.getElevatorFloor(0)).thenReturn(0);
+        when(plcMock.getElevatorSpeed(0)).thenReturn(10);
+        when(plcMock.getElevatorWeight(0)).thenReturn(100);
+        when(plcMock.getElevatorCapacity(0)).thenReturn(5);
+        when(plcMock.getElevatorNum()).thenReturn(1);
+        when(plcMock.getFloorButtonDown(0)).thenReturn(false);
+        when(plcMock.getFloorButtonUp(0)).thenReturn(false);
+        when(plcMock.getFloorNum()).thenReturn(1);
+        when(plcMock.getTarget(0)).thenReturn(0);
 
+        ecs.initializeElevatorsViaPLC();
+
+        ecs.updateDataViaPLC();
+
+        Set<String> s = ecs.getUpdateTopics();
+
+        assertTrue(s.contains("elevator/0/direction"));
+        assertTrue(s.contains("elevator/0/acceleration"));
+        assertTrue(s.contains("elevator/0/speed"));
+        assertTrue(s.contains("elevator/0/door_status"));
+        assertTrue(s.contains("elevator/0/weight"));
+        assertTrue(s.contains("elevator/0/floor_requested/0"));
+        assertEquals(6, s.size());
+
+        verify(plcMock, times(1)).getCommittedDirection(0);
+        verify(plcMock, times(1)).getElevatorAccel(0);
+        verify(plcMock, times(1)).getElevatorButton(0, 0);
+        verify(plcMock, times(1)).getElevatorDoorStatus(0);
+        verify(plcMock, times(1)).getElevatorFloor(0);
+        verify(plcMock, times(1)).getElevatorSpeed(0);
+        verify(plcMock, times(1)).getElevatorWeight(0);
+        verify(plcMock, times(1)).getElevatorCapacity(0);
+        verify(plcMock, times(1)).getElevatorNum();
+        verify(plcMock, times(1)).getFloorNum();
+        verify(plcMock, times(1)).getTarget(0);
+    }
 
 }
