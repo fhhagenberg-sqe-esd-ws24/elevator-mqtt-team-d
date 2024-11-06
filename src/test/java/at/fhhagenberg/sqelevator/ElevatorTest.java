@@ -343,8 +343,9 @@ public class ElevatorTest {
         elevator.setWeight(10);
         assertEquals(10, elevator.getWeight());
 
-        elevator.setWeight(-10);
-        assertEquals(-10, elevator.getWeight());
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> elevator.setWeight(-10));
+        assertEquals("Invalid parameter", exception.getMessage());
     }
 
     /**

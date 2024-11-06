@@ -1,13 +1,16 @@
 package at.fhhagenberg.sqelevator;
 
+import java.util.Set;
+import java.util.HashSet;
 import java.rmi.RemoteException;
 
-public class ElevatorControlSystem implements IElevator {
-    private final Elevator[] mElevators;
-    private final Floor[] mFloors;
-    private final int mFloorHeight;
+public class ElevatorControlSystem {
+    private final IElevator mPLC;
 
-    private final long mStartTimestamp;
+    private Elevator[] mElevators = null;
+    private Floor[] mFloors = null;
+
+    private final Set<String> mUpdateTopics = new HashSet<String>();
 
     /**
      * CTor which instantiates all members.
@@ -16,236 +19,148 @@ public class ElevatorControlSystem implements IElevator {
      * @param mFloors
      * @param mFloorHeight
      */
-    public ElevatorControlSystem(int nrOfElevators, int[] elevatorCapacities, int[] emptyElevatorWeights,
-                                 int nrOfFloors, int floorHeight) throws RemoteException {
-        // Check if number of elevators is equal to elevator capacities length
-        if (nrOfElevators != elevatorCapacities.length) {
-            throw new RemoteException("Mismatch between number of elevators and their capacities!");
+    public ElevatorControlSystem(IElevator plc) {
+        mPLC = plc;
+    }
+
+    public void initializeElevatorsViaPLC() {
+        try {
+            // Fetch data from PLC
+            int numOfElevators = mPLC.getElevatorNum();
+            int numOfFloors = mPLC.getFloorNum();
+
+            // Set up elevators
+            mElevators = new Elevator[numOfElevators];
+            for (int i = 0; i < numOfElevators; ++i) {
+                mElevators[i] = new Elevator(numOfFloors, mPLC.getElevatorCapacity(i));
+            }
+
+            // Set up floors
+            mFloors = new Floor[numOfFloors];
+            for (int i = 0; i < numOfFloors; ++i) {
+                mFloors[i] = new Floor();
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateDataViaPLC() {
+        if (mElevators == null) {
+            return;
         }
 
-        // Check if number of elevators is equal to empty elevator weights
-        if (nrOfElevators != emptyElevatorWeights.length) {
-            throw new RemoteException("Mismatch between number of elevators and their initial weights!");
-        }
-
-        mElevators = new Elevator[nrOfElevators];
-        mFloors = new Floor[nrOfFloors];
-        mFloorHeight = floorHeight;
-
-        // Instantiate each elevator
         for (int i = 0; i < mElevators.length; ++i) {
-            mElevators[i] = new Elevator(mFloors.length, elevatorCapacities[i], emptyElevatorWeights[i]);
+            updateElevator(i);
         }
 
         for (int i = 0; i < mFloors.length; ++i) {
-            mFloors[i] = new Floor();
+            updateFloor(i);
         }
-
-        mStartTimestamp = System.currentTimeMillis();
     }
 
-    private boolean checkValidElevatorNumber(int elevatorNumber) {
-        // Check valid elevator
-        return (elevatorNumber >= 0 && elevatorNumber < mElevators.length);
-    }
+    private void updateElevator(int elevatorNumber) {
+        assert (elevatorNumber < mElevators.length && elevatorNumber >= 0);
+        try {
+            if (mElevators[elevatorNumber].setDirection(mPLC.getCommittedDirection(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DIRECTION_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DIRECTION_SUBTOPIC));
+            }
 
-    private boolean checkValidFloor(int floor) {
-        // Check valid floor
-        return (floor >= 0 && floor < mFloors.length);
-    }
+            if (mElevators[elevatorNumber].setAcceleration(mPLC.getElevatorAccel(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.ACCELERATION_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.ACCELERATION_SUBTOPIC));
+            }
 
-    @Override
-    public int getCommittedDirection(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
+            if (mElevators[elevatorNumber].setSpeed(mPLC.getElevatorSpeed(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.SPEED_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.SPEED_SUBTOPIC));
+            }
+
+            if (mElevators[elevatorNumber].setElevatorDoorStatus(mPLC.getElevatorDoorStatus(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DOOR_STATUS_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DOOR_STATUS_SUBTOPIC));
+            }
+
+            if (mElevators[elevatorNumber].setCurrentFloor(mPLC.getElevatorFloor(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.CURRENT_FLOOR_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.CURRENT_FLOOR_SUBTOPIC));
+            }
+
+            if (mElevators[elevatorNumber].setTargetFloor(mPLC.getTarget(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.TARGET_FLOOR_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.TARGET_FLOOR_SUBTOPIC));
+            }
+
+            if (mElevators[elevatorNumber].setWeight(mPLC.getElevatorWeight(elevatorNumber))) {
+                mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.WEIGHT_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.WEIGHT_SUBTOPIC));
+            }
+
+            for (int i = 0; i < mFloors.length; ++i) {
+                if (mElevators[elevatorNumber].setElevatorButton(mPLC.getElevatorButton(elevatorNumber, i), i)) {
+                    mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i));
+                }
+                else {
+                    mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i));
+                }
+
+                if (mElevators[elevatorNumber].setFloorService(mPLC.getServicesFloors(elevatorNumber, i), i)) {
+                    mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
+                }
+                else {
+                    mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
+                }
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
-
-        return mElevators[elevatorNumber].getDirection();
     }
 
-    @Override
-    public int getElevatorAccel(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
+    private void updateFloor(int floorNumber) {
+        assert (floorNumber < mFloors.length && floorNumber >= 0);
+        try {
+            if (mFloors[floorNumber].setButtonUpPressed(mPLC.getFloorButtonUp(floorNumber))) {
+                mUpdateTopics.add(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_UP_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_UP_SUBTOPIC));
+            }
+
+            if (mFloors[floorNumber].setButtonDownPressed(mPLC.getFloorButtonDown(floorNumber))) {
+                mUpdateTopics.add(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_DOWN_SUBTOPIC));
+            }
+            else {
+                mUpdateTopics.remove(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_DOWN_SUBTOPIC));
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
-
-        return mElevators[elevatorNumber].getAcceleration();
     }
 
-    @Override
-    public boolean getElevatorButton(int elevatorNumber, int floor) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        // Check valid floor
-        if (!checkValidFloor(floor)) {
-            throw new RemoteException("Floor " + floor + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getElevatorButton(floor);
+    private String formatElevatorUpdateTopic(int elevatorNumber, String subtopic) {
+        return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + "/" + subtopic;
     }
 
-    @Override
-    public int getElevatorDoorStatus(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getElevatorDoorStatus();
+    private String formatElevatorUpdateTopic(int elevatorNumber, String subtopic, int floor) {
+        return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + "/" + subtopic + "/" + floor;
     }
 
-    @Override
-    public int getElevatorFloor(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getCurrentFloor();
-    }
-
-    @Override
-    public int getElevatorNum() throws RemoteException {
-        return mElevators.length;
-    }
-
-    @Override
-    public int getElevatorPosition(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getCurrentFloor() * mFloorHeight;
-    }
-
-    @Override
-    public int getElevatorSpeed(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getSpeed();
-    }
-
-    @Override
-    public int getElevatorWeight(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getWeight();
-    }
-
-    @Override
-    public int getElevatorCapacity(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getCapacity();
-    }
-
-    @Override
-    public boolean getFloorButtonDown(int floor) throws RemoteException {
-        // Check valid floor
-        if (!checkValidFloor(floor)) {
-            throw new RemoteException("Floor " + floor + " does not exist!");
-        }
-
-        return mFloors[floor].getButtonDownPressed();
-    }
-
-    @Override
-    public boolean getFloorButtonUp(int floor) throws RemoteException {
-        // Check valid floor
-        if (!checkValidFloor(floor)) {
-            throw new RemoteException("Floor " + floor + " does not exist!");
-        }
-
-        return mFloors[floor].getButtonUpPressed();
-    }
-
-    @Override
-    public int getFloorHeight() throws RemoteException {
-        return mFloorHeight;
-    }
-
-    @Override
-    public int getFloorNum() throws RemoteException {
-        return mFloors.length;
-    }
-
-    @Override
-    public boolean getServicesFloors(int elevatorNumber, int floor) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        // Check valid floor
-        if (!checkValidFloor(floor)) {
-            throw new RemoteException("Floor " + floor + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getFloorService(floor);
-    }
-
-    @Override
-    public int getTarget(int elevatorNumber) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        return mElevators[elevatorNumber].getTargetFloor();
-    }
-
-    @Override
-    public void setCommittedDirection(int elevatorNumber, int direction) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        mElevators[elevatorNumber].setDirection(direction);
-    }
-
-    @Override
-    public void setServicesFloors(int elevatorNumber, int floor, boolean service) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        // Check valid floor
-        if (!checkValidFloor(floor)) {
-            throw new RemoteException("Floor " + floor + " does not exist!");
-        }
-
-        mElevators[elevatorNumber].setFloorService(service, floor);
-    }
-
-    @Override
-    public void setTarget(int elevatorNumber, int target) throws RemoteException {
-        // Check valid elevator
-        if (!checkValidElevatorNumber(elevatorNumber)) {
-            throw new RemoteException("Elevator " + elevatorNumber + " does not exist!");
-        }
-
-        mElevators[elevatorNumber].setTargetFloor(target);
-    }
-
-    @Override
-    public long getClockTick() throws RemoteException {
-        return System.currentTimeMillis() - mStartTimestamp;
+    private String formatFloorUpdateTopic(int floorNumber, String subtopic) {
+        return MqttTopics.FLOOR_TOPIC + "/" + floorNumber + "/" + subtopic;
     }
 }
