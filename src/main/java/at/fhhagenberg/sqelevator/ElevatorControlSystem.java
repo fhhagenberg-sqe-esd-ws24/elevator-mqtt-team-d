@@ -4,25 +4,34 @@ import java.util.Set;
 import java.util.HashSet;
 import java.rmi.RemoteException;
 
+/**
+ * Class which represents the elevator control system.
+ */
 public class ElevatorControlSystem {
+    /**< The PLC object to communicate with. */
     private final IElevator mPLC;
 
+    /**< The elevators. */
     private Elevator[] mElevators = null;
+    /**< The floors. */
     private Floor[] mFloors = null;
 
-    private final Set<String> mUpdateTopics = new HashSet<String>();
+    /**< The set of topics which need to be updated. */
+    private final Set<String> mUpdateTopics;
 
     /**
      * CTor which instantiates all members.
      *
-     * @param mElevators
-     * @param mFloors
-     * @param mFloorHeight
+     * @param plc plc The PLC object to communicate with.
      */
     public ElevatorControlSystem(IElevator plc) {
         mPLC = plc;
+        mUpdateTopics = new HashSet<String>();
     }
 
+    /**
+     * Initializes the elevators and floors via the PLC. Only called once at startup.
+     */
     public void initializeElevatorsViaPLC() {
         try {
             // Fetch data from PLC
@@ -45,6 +54,9 @@ public class ElevatorControlSystem {
         }
     }
 
+    /**
+     * Updates the data via the PLC. Gets called periodically.
+     */
     public void updateDataViaPLC() {
         if (mElevators == null) {
             return;
@@ -59,6 +71,18 @@ public class ElevatorControlSystem {
         }
     }
 
+    /**
+     * Returns the set of topics which need to be updated.
+     * @return The set of topics.
+     */
+    public Set<String> getUpdateTopics() {
+        return mUpdateTopics;
+    }
+
+    /**
+     * Updates the elevator data.
+     * @param elevatorNumber The elevator number.
+     */
     private void updateElevator(int elevatorNumber) {
         assert (elevatorNumber < mElevators.length && elevatorNumber >= 0);
         try {
@@ -131,6 +155,10 @@ public class ElevatorControlSystem {
         }
     }
 
+    /**
+     * Updates the floor data.
+     * @param floorNumber The floor number.
+     */
     private void updateFloor(int floorNumber) {
         assert (floorNumber < mFloors.length && floorNumber >= 0);
         try {
@@ -152,14 +180,33 @@ public class ElevatorControlSystem {
         }
     }
 
+    /**
+     * Formats the topic for an elevator update.
+     * @param elevatorNumber The elevator number.
+     * @param subtopic The subtopic.
+     * @return The formatted mqtt topic.
+     */
     private String formatElevatorUpdateTopic(int elevatorNumber, String subtopic) {
         return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + "/" + subtopic;
     }
 
+    /**
+     * Formats the topic for an elevator update.
+     * @param elevatorNumber The elevator number.
+     * @param subtopic The subtopic.
+     * @param floor The floor number.
+     * @return The formatted topic.
+     */
     private String formatElevatorUpdateTopic(int elevatorNumber, String subtopic, int floor) {
         return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + "/" + subtopic + "/" + floor;
     }
 
+    /**
+     * Formats the topic for a floor update.
+     * @param floorNumber The floor number.
+     * @param subtopic The subtopic.
+     * @return The formatted topic.
+     */
     private String formatFloorUpdateTopic(int floorNumber, String subtopic) {
         return MqttTopics.FLOOR_TOPIC + "/" + floorNumber + "/" + subtopic;
     }

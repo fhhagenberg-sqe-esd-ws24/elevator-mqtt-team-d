@@ -380,7 +380,7 @@ public class ElevatorTest {
     }
 
     /**
-     * Tests the getCapcity method.
+     * Tests the getCapacity method.
      */
     @Test
     public void testCapacity() {
