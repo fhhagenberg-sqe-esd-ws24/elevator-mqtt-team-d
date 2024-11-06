@@ -39,9 +39,10 @@ public class FloorTest {
      */
     @Test
     public void testSetButtonDownPressed() {
-        floor.setButtonDownPressed(true);
+        assertFalse(floor.setButtonDownPressed(false));
+        assertTrue(floor.setButtonDownPressed(true));
         assertTrue(floor.getButtonDownPressed());
-        floor.setButtonDownPressed(false);
+        assertTrue(floor.setButtonDownPressed(false));
         assertFalse(floor.getButtonDownPressed());
     }
 
@@ -50,9 +51,10 @@ public class FloorTest {
      */
     @Test
     public void testSetButtonUpPressed() {
-        floor.setButtonUpPressed(true);
+        assertFalse(floor.setButtonUpPressed(false));
+        assertTrue(floor.setButtonUpPressed(true));
         assertTrue(floor.getButtonUpPressed());
-        floor.setButtonUpPressed(false);
+        assertTrue(floor.setButtonUpPressed(false));
         assertFalse(floor.getButtonUpPressed());
     }
 

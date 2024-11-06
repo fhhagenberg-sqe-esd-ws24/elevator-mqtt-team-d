@@ -14,13 +14,21 @@ public class Floor {
         return mButtonDownPressed;
     }
 
-    public void setButtonUpPressed(boolean state)
+    public boolean setButtonUpPressed(boolean state)
     {
-        mButtonUpPressed = state;
+        if (state != mButtonUpPressed) {
+            mButtonUpPressed = state;
+            return true;
+        }
+        return false;
     }
 
-    public void setButtonDownPressed(boolean state)
+    public boolean setButtonDownPressed(boolean state)
     {
-        mButtonDownPressed = state;
+        if (state != mButtonDownPressed) {
+            mButtonDownPressed = state;
+            return true;
+        }
+        return false;
     }
 }

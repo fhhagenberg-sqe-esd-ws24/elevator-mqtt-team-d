@@ -1,13 +1,12 @@
 package at.fhhagenberg.sqelevator;
 
-import java.rmi.RemoteException;
 import java.util.Arrays;
 
 public class Elevator {
     private final int mCapacity;
+    private final int mNumOfFloors;
     private int mSpeed = 0;
     private int mAcceleration = 0;
-    private final int mNumOfFloors;
     private int mDirection = IElevator.ELEVATOR_DIRECTION_UNCOMMITTED;
     private int mElevatorDoorStatus = IElevator.ELEVATOR_DOORS_CLOSED;
     private int mCurrentFloor = 0;
@@ -35,20 +34,28 @@ public class Elevator {
         return mDirection;
     }
 
-    public void setDirection(int direction) {
+    public boolean setDirection(int direction) {
         if(direction < IElevator.ELEVATOR_DIRECTION_UP || direction > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mDirection = direction;
+        if (direction != mDirection) {
+            mDirection = direction;
+            return true;
+        }
+        return false;
     }
 
     public int getAcceleration() {
         return mAcceleration;
     }
 
-    public void setAcceleration(int acceleration) {
-        mAcceleration = acceleration;
+    public boolean setAcceleration(int acceleration) {
+        if (acceleration != mAcceleration) {
+            mAcceleration = acceleration;
+            return true;
+        }
+        return false;
     }
 
     public boolean getElevatorButton(int floor) {
@@ -59,48 +66,64 @@ public class Elevator {
         return mButtonStatus[floor];
     }
 
-    public void setElevatorButton(boolean buttonStatus, int floor) {
+    public boolean setElevatorButton(boolean buttonStatus, int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mButtonStatus[floor] = buttonStatus;
+        if (buttonStatus != mButtonStatus[floor]) {
+            mButtonStatus[floor] = buttonStatus;
+            return true;
+        }
+        return false;
     }
 
     public int getElevatorDoorStatus() {
         return mElevatorDoorStatus;
     }
 
-    public void setElevatorDoorStatus(int doorStatus) {
+    public boolean setElevatorDoorStatus(int doorStatus) {
         if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN || doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mElevatorDoorStatus = doorStatus;
+        if (doorStatus != mElevatorDoorStatus) {
+            mElevatorDoorStatus = doorStatus;
+            return true;
+        }
+        return false;
     }
 
     public int getCurrentFloor() {
         return mCurrentFloor;
     }
 
-    public void setCurrentFloor(int currentFloor) {
+    public boolean setCurrentFloor(int currentFloor) {
         if(currentFloor < 0 || currentFloor >= mNumOfFloors) {
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mCurrentFloor = currentFloor;
+        if (currentFloor != mCurrentFloor) {
+            mCurrentFloor = currentFloor;
+            return true;
+        }
+        return false;
     }
 
     public int getTargetFloor() {
         return mTargetFloor;
     }
 
-    public void setTargetFloor(int targetFloor) {
+    public boolean setTargetFloor(int targetFloor) {
         if(targetFloor < 0 || targetFloor >= mNumOfFloors){
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mTargetFloor = targetFloor;
+        if (targetFloor != mTargetFloor) {
+            mTargetFloor = targetFloor;
+            return true;
+        }
+        return false;
     }
 
     public boolean getFloorService(int floor) {
@@ -111,32 +134,44 @@ public class Elevator {
         return mFloorService[floor];
     }
 
-    public void setFloorService(boolean service, int floor) {
+    public boolean setFloorService(boolean service, int floor) {
         if(floor < 1 || floor >= mNumOfFloors) {
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mFloorService[floor] = service;
+        if (service != mFloorService[floor]) {
+            mFloorService[floor] = service;
+            return true;
+        }
+        return false;
     }
 
     public int getWeight() {
         return mCurrentWeight;
     }
 
-    public void setWeight(int weight) {
+    public boolean setWeight(int weight) {
         if(weight < 0) {
             throw new IllegalArgumentException("Invalid parameter");
         }
 
-        mCurrentWeight = weight;
+        if (weight != mCurrentWeight) {
+            mCurrentWeight = weight;
+            return true;
+        }
+        return false;
     }
 
     public int getSpeed() {
         return mSpeed;
     }
 
-    public void setSpeed(int speed) {
-        mSpeed = speed;
+    public boolean setSpeed(int speed) {
+        if (speed != mSpeed) {
+            mSpeed = speed;
+            return true;
+        }
+        return false;
     }
 
     public int getCapacity() {

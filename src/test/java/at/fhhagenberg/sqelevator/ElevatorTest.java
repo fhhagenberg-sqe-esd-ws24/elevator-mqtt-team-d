@@ -3,9 +3,6 @@ package at.fhhagenberg.sqelevator;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-import java.rmi.RemoteException;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * This class tests the Elevator class.
  */
@@ -49,11 +46,14 @@ public class ElevatorTest {
     @Test
     public void testDirections() {
         Elevator elevator = new Elevator(5, 10);
-        elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UP);
+        assertTrue(elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UP));
+        assertFalse(elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UP));
         assertEquals(IElevator.ELEVATOR_DIRECTION_UP, elevator.getDirection());
-        elevator.setDirection(IElevator.ELEVATOR_DIRECTION_DOWN);
+        assertTrue(elevator.setDirection(IElevator.ELEVATOR_DIRECTION_DOWN));
+        assertFalse(elevator.setDirection(IElevator.ELEVATOR_DIRECTION_DOWN));
         assertEquals(IElevator.ELEVATOR_DIRECTION_DOWN, elevator.getDirection());
-        elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+        assertTrue(elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED));
+        assertFalse(elevator.setDirection(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED));
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
@@ -85,10 +85,12 @@ public class ElevatorTest {
         Elevator elevator = new Elevator(5, 10);
         assertEquals(0, elevator.getAcceleration());
 
-        elevator.setAcceleration(10);
+        assertTrue(elevator.setAcceleration(10));
+        assertFalse(elevator.setAcceleration(10));
         assertEquals(10, elevator.getAcceleration());
 
-        elevator.setAcceleration(-10);
+        assertTrue(elevator.setAcceleration(-10));
+        assertFalse(elevator.setAcceleration(-10));
         assertEquals(-10, elevator.getAcceleration());
     }
 
@@ -102,16 +104,19 @@ public class ElevatorTest {
         assertFalse(elevator.getElevatorButton(0));
         assertFalse(elevator.getElevatorButton(1));
 
-        elevator.setElevatorButton(true, 0);
+        assertTrue(elevator.setElevatorButton(true, 0));
         assertTrue(elevator.getElevatorButton(0));
 
-        elevator.setElevatorButton(true, 1);
+        assertFalse(elevator.setElevatorButton(true, 0));
+        assertTrue(elevator.getElevatorButton(0));
+
+        assertTrue(elevator.setElevatorButton(true, 1));
         assertTrue(elevator.getElevatorButton(1));
 
-        elevator.setElevatorButton(false, 0);
+        assertTrue(elevator.setElevatorButton(false, 0));
         assertFalse(elevator.getElevatorButton(0));
 
-        elevator.setElevatorButton(false, 1);
+        assertTrue(elevator.setElevatorButton(false, 1));
         assertFalse(elevator.getElevatorButton(1));
     }
 
@@ -167,16 +172,20 @@ public class ElevatorTest {
     public void testElevatorDoorStatus() {
         Elevator elevator = new Elevator(5, 10);
 
-        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPEN);
+        assertTrue(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPEN));
+        assertFalse(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPEN));
         assertEquals(IElevator.ELEVATOR_DOORS_OPEN, elevator.getElevatorDoorStatus());
 
-        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSED);
+        assertTrue(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSED));
+        assertFalse(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSED));
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
 
-        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPENING);
+        assertTrue(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPENING));
+        assertFalse(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_OPENING));
         assertEquals(IElevator.ELEVATOR_DOORS_OPENING, elevator.getElevatorDoorStatus());
 
-        elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSING);
+        assertTrue(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSING));
+        assertFalse(elevator.setElevatorDoorStatus(IElevator.ELEVATOR_DOORS_CLOSING));
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSING, elevator.getElevatorDoorStatus());
     }
 
@@ -217,10 +226,11 @@ public class ElevatorTest {
     public void testCurrentFloor () {
         Elevator elevator = new Elevator(2, 10);
 
-        elevator.setCurrentFloor(0);
+        assertFalse(elevator.setCurrentFloor(0));
         assertEquals(0, elevator.getCurrentFloor());
 
-        elevator.setCurrentFloor(1);
+        assertTrue(elevator.setCurrentFloor(1));
+        assertFalse(elevator.setCurrentFloor(1));
         assertEquals(1, elevator.getCurrentFloor());
     }
 
@@ -257,10 +267,11 @@ public class ElevatorTest {
     public void testTargetFloor () {
         Elevator elevator = new Elevator(2, 10);
 
-        elevator.setTargetFloor(0);
+        assertFalse(elevator.setTargetFloor(0));
         assertEquals(0, elevator.getTargetFloor());
 
-        elevator.setTargetFloor(1);
+        assertTrue(elevator.setTargetFloor(1));
+        assertFalse(elevator.setTargetFloor(1));
         assertEquals(1, elevator.getTargetFloor());
     }
 
@@ -299,10 +310,11 @@ public class ElevatorTest {
     public void testServiceFloor () {
         Elevator elevator = new Elevator(2, 10);
 
-        elevator.setFloorService(true, 1);
+        assertFalse(elevator.setFloorService(true, 1));
         assertTrue(elevator.getFloorService(1));
 
-        elevator.setFloorService(false, 1);
+        assertTrue(elevator.setFloorService(false, 1));
+        assertFalse(elevator.setFloorService(false, 1));
         assertFalse(elevator.getFloorService(1));
     }
 
@@ -340,11 +352,13 @@ public class ElevatorTest {
 
         assertEquals(0, elevator.getWeight());
 
-        elevator.setWeight(10);
+        assertTrue(elevator.setWeight(10));
+        assertFalse(elevator.setWeight(10));
         assertEquals(10, elevator.getWeight());
 
-        elevator.setWeight(-10);
-        assertEquals(-10, elevator.getWeight());
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> elevator.setWeight(-10));
+        assertEquals("Invalid parameter", exception.getMessage());
     }
 
     /**
@@ -356,15 +370,17 @@ public class ElevatorTest {
 
         assertEquals(0, elevator.getSpeed());
 
-        elevator.setSpeed(10);
+        assertTrue(elevator.setSpeed(10));
+        assertFalse(elevator.setSpeed(10));
         assertEquals(10, elevator.getSpeed());
 
-        elevator.setSpeed(-10);
+        assertTrue(elevator.setSpeed(-10));
+        assertFalse(elevator.setSpeed(-10));
         assertEquals(-10, elevator.getSpeed());
     }
 
     /**
-     * Tests the getCapcity method.
+     * Tests the getCapacity method.
      */
     @Test
     public void testCapacity() {
