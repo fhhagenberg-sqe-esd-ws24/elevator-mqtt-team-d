@@ -143,11 +143,12 @@ public class ElevatorControlSystem {
                     mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i));
                 }
 
-                if (mElevators[elevatorNumber].setFloorService(mPLC.getServicesFloors(elevatorNumber, i), i)) {
-                    mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
-                }
-                else {
-                    mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
+                if(i > 0) {
+                    if (mElevators[elevatorNumber].setFloorService(mPLC.getServicesFloors(elevatorNumber, i), i)) {
+                        mUpdateTopics.add(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
+                    } else {
+                        mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
+                    }
                 }
             }
         } catch (RemoteException e) {
@@ -210,4 +211,16 @@ public class ElevatorControlSystem {
     private String formatFloorUpdateTopic(int floorNumber, String subtopic) {
         return MqttTopics.FLOOR_TOPIC + "/" + floorNumber + "/" + subtopic;
     }
+
+    // helper functions for testing
+    public Elevator[] getElevators() {
+        return mElevators;
+    }
+
+    public Floor[] getFloors() {
+        return mFloors;
+    }
+
+
+
 }
