@@ -18,7 +18,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    permissions: write-all
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
@@ -33,3 +33,14 @@ jobs:
 
     - name: Run Unit Tests
       run: mvn --batch-mode -Dmaven.test.failure.ignore=true test
+
+    - name: Jacoco Report to PR
+      id: jacoco
+      uses: madrapps/jacoco-report@v1.7.1
+      with:
+        paths: ${{ github.workspace }}/build/reports/jacoco/testCoverage/testCoverage.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        min-coverage-overall: 40
+        min-coverage-changed-files: 60
+        title: Code Coverage
+        update-comment: true
