@@ -17,6 +17,8 @@ public class ElevatorControlSystem {
     /**< The floors. */
     private Floor[] mFloors = null;
 
+    private int mFloorHeight;
+
     /**< The set of topics which need to be updated. */
     private final HashMap<String, Either<Integer, Boolean>> mUpdateTopics;
 
@@ -38,6 +40,7 @@ public class ElevatorControlSystem {
             // Fetch data from PLC
             int numOfElevators = mPLC.getElevatorNum();
             int numOfFloors = mPLC.getFloorNum();
+            mFloorHeight = mPLC.getFloorHeight();
 
             // Set up elevators
             mElevators = new Elevator[numOfElevators];
@@ -56,6 +59,14 @@ public class ElevatorControlSystem {
     }
 
     /**
+     * Returns the number of floors.
+     * @return The number of floors.
+     */
+    public int getFloorHeight() {
+        return mFloorHeight;
+    }
+
+    /**
      * Updates the data via the PLC. Gets called periodically.
      */
     public void updateDataViaPLC() {
@@ -69,6 +80,23 @@ public class ElevatorControlSystem {
 
         for (int i = 0; i < mFloors.length; ++i) {
             updateFloor(i);
+        }
+    }
+
+    /**
+     *
+     */
+    public void initialUpdateDataViaPLC() {
+        if (mElevators == null) {
+            return;
+        }
+
+        for (int i = 0; i < mElevators.length; ++i) {
+            initialUpdateElevator(i);
+        }
+
+        for (int i = 0; i < mFloors.length; ++i) {
+            initialUpdateFloor(i);
         }
     }
 
@@ -158,6 +186,52 @@ public class ElevatorControlSystem {
     }
 
     /**
+     * Initial pdates the elevator data.
+     * @param elevatorNumber The elevator number.
+     */
+    private void initialUpdateElevator(int elevatorNumber) {
+        assert (elevatorNumber < mElevators.length && elevatorNumber >= 0);
+        try {
+            mElevators[elevatorNumber].setDirection(mPLC.getCommittedDirection(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DIRECTION_SUBTOPIC), Either.left(mPLC.getCommittedDirection(elevatorNumber)));
+
+            mElevators[elevatorNumber].setAcceleration(mPLC.getElevatorAccel(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.ACCELERATION_SUBTOPIC), Either.left(mPLC.getElevatorAccel(elevatorNumber)));
+
+            mElevators[elevatorNumber].setSpeed(mPLC.getElevatorSpeed(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.SPEED_SUBTOPIC), Either.left(mPLC.getElevatorSpeed(elevatorNumber)));
+
+            mElevators[elevatorNumber].setElevatorDoorStatus(mPLC.getElevatorDoorStatus(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DOOR_STATUS_SUBTOPIC), Either.left(mPLC.getElevatorDoorStatus(elevatorNumber)));
+
+
+            mElevators[elevatorNumber].setCurrentFloor(mPLC.getElevatorFloor(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.CURRENT_FLOOR_SUBTOPIC), Either.left(mPLC.getElevatorFloor(elevatorNumber)));
+
+            mElevators[elevatorNumber].setTargetFloor(mPLC.getTarget(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.TARGET_FLOOR_SUBTOPIC), Either.left(mPLC.getTarget(elevatorNumber)));
+
+
+            mElevators[elevatorNumber].setWeight(mPLC.getElevatorWeight(elevatorNumber));
+            mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.WEIGHT_SUBTOPIC), Either.left(mPLC.getElevatorWeight(elevatorNumber)));
+
+
+            for (int i = 0; i < mFloors.length; ++i) {
+                mElevators[elevatorNumber].setElevatorButton(mPLC.getElevatorButton(elevatorNumber, i), i);
+                mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i), Either.right(mPLC.getElevatorButton(elevatorNumber, i)));
+
+
+                if(i > 0) {
+                    mElevators[elevatorNumber].setFloorService(mPLC.getServicesFloors(elevatorNumber, i), i);
+                    mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i), Either.right(mPLC.getServicesFloors(elevatorNumber, i)));
+                }
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Updates the floor data.
      * @param floorNumber The floor number.
      */
@@ -183,13 +257,30 @@ public class ElevatorControlSystem {
     }
 
     /**
+     * Initial updates the floor data.
+     * @param floorNumber The floor number.
+     */
+    private void initialUpdateFloor(int floorNumber) {
+        assert (floorNumber < mFloors.length && floorNumber >= 0);
+        try {
+            mFloors[floorNumber].setButtonUpPressed(mPLC.getFloorButtonUp(floorNumber));
+            mUpdateTopics.put(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_UP_SUBTOPIC), Either.right(mPLC.getFloorButtonUp(floorNumber)));
+
+            mFloors[floorNumber].setButtonDownPressed(mPLC.getFloorButtonDown(floorNumber));
+            mUpdateTopics.put(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_DOWN_SUBTOPIC), Either.right(mPLC.getFloorButtonDown(floorNumber)));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Formats the topic for an elevator update.
      * @param elevatorNumber The elevator number.
      * @param subtopic The subtopic.
      * @return The formatted mqtt topic.
      */
     private String formatElevatorUpdateTopic(int elevatorNumber, String subtopic) {
-        return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + "/" + subtopic;
+        return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + subtopic;
     }
 
     /**
@@ -200,7 +291,7 @@ public class ElevatorControlSystem {
      * @return The formatted topic.
      */
     private String formatElevatorUpdateTopic(int elevatorNumber, String subtopic, int floor) {
-        return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + "/" + subtopic + "/" + floor;
+        return MqttTopics.ELEVATOR_TOPIC + "/" + elevatorNumber + subtopic + "/" + floor;
     }
 
     /**
@@ -210,7 +301,7 @@ public class ElevatorControlSystem {
      * @return The formatted topic.
      */
     private String formatFloorUpdateTopic(int floorNumber, String subtopic) {
-        return MqttTopics.FLOOR_TOPIC + "/" + floorNumber + "/" + subtopic;
+        return MqttTopics.FLOOR_TOPIC + "/" + floorNumber + subtopic;
     }
 
     /**
