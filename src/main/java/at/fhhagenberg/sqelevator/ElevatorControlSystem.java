@@ -220,11 +220,10 @@ public class ElevatorControlSystem {
                 mElevators[elevatorNumber].setElevatorButton(mPLC.getElevatorButton(elevatorNumber, i), i);
                 mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i), Either.right(mPLC.getElevatorButton(elevatorNumber, i)));
 
-
                 if(i > 0) {
                     mElevators[elevatorNumber].setFloorService(mPLC.getServicesFloors(elevatorNumber, i), i);
-                    mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i), Either.right(mPLC.getServicesFloors(elevatorNumber, i)));
                 }
+                mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i), Either.right(mPLC.getServicesFloors(elevatorNumber, i)));
             }
         } catch (RemoteException e) {
             e.printStackTrace();
