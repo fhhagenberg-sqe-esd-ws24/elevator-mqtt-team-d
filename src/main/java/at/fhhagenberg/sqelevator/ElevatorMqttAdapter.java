@@ -57,7 +57,7 @@ public class ElevatorMqttAdapter {
         }
     }
 
-    private void run(int interval) throws InterruptedException, RemoteException {
+    public void run(int interval) throws InterruptedException, RemoteException {
         // Initialize elevators and floors
         mControlSystem.initializeElevatorsViaPLC();
 
@@ -73,7 +73,9 @@ public class ElevatorMqttAdapter {
         // subscribe to topics
         subscribeToTopics();
 
-        while(!mConnectionStatus) {}
+        while(!mConnectionStatus) {
+            Thread.sleep(500);
+        }
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -139,7 +141,7 @@ public class ElevatorMqttAdapter {
 
         for (int i = 0; i < mControlSystem.getElevators().length; i++) {
             mMqttClient.publishWith()
-                    .topic(MqttTopics.ELEVATOR_TOPIC + i + MqttTopics.CAPACITY_SUBTOPIC).retain(true)
+                    .topic(MqttTopics.ELEVATOR_TOPIC + "/" + i + MqttTopics.CAPACITY_SUBTOPIC).retain(true)
                     .payload(String.valueOf(mControlSystem.getElevators()[i].getCapacity()).getBytes()).send();
         }
     }
@@ -147,7 +149,7 @@ public class ElevatorMqttAdapter {
     private void subscribeToTopics() {
         mMqttClient.subscribeWith()
                 .topicFilter(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/#")
-                .callback(publish -> mqttCallback(publish))
+                .callback(this::mqttCallback)
                 .send();
     }
 
@@ -156,7 +158,7 @@ public class ElevatorMqttAdapter {
         String[] parts = topic.split("/");
 
         if (parts.length == 2) {
-            if(("/" + parts[1]) == MqttTopics.CONNECTION_STATUS_SUBTOPIC) {
+            if(("/" + parts[1]).equals(MqttTopics.CONNECTION_STATUS_SUBTOPIC)) {
                 mConnectionStatus = (Boolean.parseBoolean(new String(publish.getPayloadAsBytes())) ? true : false);
             }
             else {
