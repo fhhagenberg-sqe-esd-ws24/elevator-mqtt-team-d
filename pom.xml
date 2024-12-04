@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>at.fhhagenberg.sqelevator</groupId>
-    <artifactId>mqtt-elevator</artifactId>
+    <artifactId>mqtt-elevator-teamd</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
