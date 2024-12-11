@@ -1,6 +1,6 @@
-package at.fhhagenberg.sqelevator;
+package at.fhhagenberg.sqelevator.adapter;
 
-import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
+import at.fhhagenberg.sqelevator.IElevator;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import org.junit.jupiter.api.*;
@@ -15,7 +15,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

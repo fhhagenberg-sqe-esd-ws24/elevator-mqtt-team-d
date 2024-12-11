@@ -1,9 +1,13 @@
-package at.fhhagenberg.sqelevator;
+package at.fhhagenberg.sqelevator.adapter;
 
 import java.util.HashMap;
 import java.rmi.RemoteException;
 import java.util.Map;
 
+import at.fhhagenberg.sqelevator.Elevator;
+import at.fhhagenberg.sqelevator.Floor;
+import at.fhhagenberg.sqelevator.IElevator;
+import at.fhhagenberg.sqelevator.MqttTopics;
 import io.vavr.control.Either;
 
 /**

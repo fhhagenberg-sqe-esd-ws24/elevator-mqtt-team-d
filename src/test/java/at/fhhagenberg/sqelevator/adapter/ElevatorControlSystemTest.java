@@ -1,5 +1,8 @@
-package at.fhhagenberg.sqelevator;
+package at.fhhagenberg.sqelevator.adapter;
 
+import at.fhhagenberg.sqelevator.Elevator;
+import at.fhhagenberg.sqelevator.Floor;
+import at.fhhagenberg.sqelevator.IElevator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
