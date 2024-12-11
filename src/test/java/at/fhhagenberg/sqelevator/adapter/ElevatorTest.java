@@ -1,6 +1,10 @@
-package at.fhhagenberg.sqelevator;
+package at.fhhagenberg.sqelevator.adapter;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import at.fhhagenberg.sqelevator.Elevator;
+import at.fhhagenberg.sqelevator.IElevator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -37,7 +41,7 @@ public class ElevatorTest {
     public void testDirectionDefault() {
         Elevator elevator = new Elevator(5, 10);
 
-        assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
+        Assertions.assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
     }
 
     /**

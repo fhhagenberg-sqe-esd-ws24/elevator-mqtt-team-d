@@ -1,5 +1,7 @@
-package at.fhhagenberg.sqelevator;
+package at.fhhagenberg.sqelevator.adapter;
 
+import at.fhhagenberg.sqelevator.IElevator;
+import at.fhhagenberg.sqelevator.MqttTopics;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
@@ -128,7 +130,7 @@ public class ElevatorMqttAdapter {
         return false;
     }
 
-    private void publishRetainedMessages() throws RemoteException {
+    private void publishRetainedMessages() {
         mMqttClient.publishWith()
                 .topic(MqttTopics.INFO_TOPIC + MqttTopics.NUM_OF_ELEVATORS_SUBTOPIC).retain(true)
                 .payload(String.valueOf(mControlSystem.getElevators().length).getBytes()).send();
@@ -159,7 +161,7 @@ public class ElevatorMqttAdapter {
 
         if (parts.length == 2) {
             if(("/" + parts[1]).equals(MqttTopics.CONNECTION_STATUS_SUBTOPIC)) {
-                mConnectionStatus = (Boolean.parseBoolean(new String(publish.getPayloadAsBytes())) ? true : false);
+                mConnectionStatus = (Boolean.parseBoolean(new String(publish.getPayloadAsBytes())));
             }
             else {
                 System.out.println("Unknown subtopic in subscribeToTopics: " + topic);
