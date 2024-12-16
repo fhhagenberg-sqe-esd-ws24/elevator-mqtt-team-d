@@ -4,6 +4,7 @@ import at.fhhagenberg.sqelevator.Elevator;
 import at.fhhagenberg.sqelevator.Floor;
 import at.fhhagenberg.sqelevator.IElevator;
 import at.fhhagenberg.sqelevator.MqttTopics;
+import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
@@ -77,7 +78,8 @@ public class ElevatorAlgorithm {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-
+                publishConnectionStatus();
+                resolveElevatorRequests();
             }
         }, 0, 100);
     }
@@ -100,9 +102,15 @@ public class ElevatorAlgorithm {
     private void subscribeToTopics() {
         // Subscribe to info topic
         mMqttClient.subscribeWith()
-                .topicFilter(MqttTopics.INFO_TOPIC + "/#")
+                .addSubscription()
+                    .topicFilter(MqttTopics.INFO_TOPIC + "/#")
+                    .applySubscription()
+                .addSubscription()
+                    .topicFilter(MqttTopics.ELEVATOR_TOPIC + "/+" + MqttTopics.CAPACITY_SUBTOPIC)
+                    .applySubscription()
                 .callback(this::retainedMessagesMqttCallback)
                 .send();
+
 
         // Subscribe to elevator and floor topics
         mMqttClient.subscribeWith()
@@ -180,6 +188,8 @@ public class ElevatorAlgorithm {
                         mElevatorState.getElevators()[elevatorNumber].setFloorService(Boolean.parseBoolean(new String(publish.getPayloadAsBytes())), floorNumber);
                     }
 
+                    case MqttTopics.CAPACITY_SUBTOPIC -> {}
+
                     default -> System.out.println("Unknown elevator subtopic: " + parts[2]);
                 }
             }
@@ -203,8 +213,10 @@ public class ElevatorAlgorithm {
 
     private void publishConnectionStatus() {
         mMqttClient.publishWith()
-                .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + MqttTopics.CONNECTION_STATUS_SUBTOPIC).retain(true)
-                .payload(String.valueOf(true).getBytes()).send();
+                .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + MqttTopics.CONNECTION_STATUS_SUBTOPIC)
+                .payload(String.valueOf(true).getBytes())
+                .retain(true)
+                .send();
     }
 
     private void resolveElevatorRequests() {

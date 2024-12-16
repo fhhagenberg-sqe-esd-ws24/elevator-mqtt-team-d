@@ -24,7 +24,6 @@ public class ElevatorControlSystemTest {
     IElevator plcMock;
 
     ElevatorControlSystem ecs;
-    // TODO change Set to HashTable
     /**
      * Set up the test environment.
      */
