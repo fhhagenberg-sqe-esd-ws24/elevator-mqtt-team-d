@@ -211,59 +211,85 @@ public class ElevatorAlgorithm {
         // Iterate through elevators and check if control command needs to be sent
         var elevators = mElevatorState.getElevators();
         var floors = mElevatorState.getFloors();
-        for (var elevator : elevators) {
+
+        for (int i = 0; i < elevators.length; i++) {
             // Check if target location reached
-            if (elevator.getCurrentFloor() == elevator.getTargetFloor()) {
-                if (elevator.getElevatorDoorStatus() != IElevator.ELEVATOR_DOORS_CLOSING) {
+            if (elevators[i].getCurrentFloor() == elevators[i].getTargetFloor()) {
+                if (elevators[i].getElevatorDoorStatus() != IElevator.ELEVATOR_DOORS_CLOSING) {
                     continue;
                 }
-                // Check if there is another request in current direction
-                switch (elevator.getDirection()) {
-                    case IElevator.ELEVATOR_DIRECTION_UP:
-                        handleUpwardRequest(elevator, floors);
-                        break;
 
-                    case IElevator.ELEVATOR_DIRECTION_DOWN:
-                        handleDownwardRequest(elevator, floors);
-                        break;
-
-                    case IElevator.ELEVATOR_DIRECTION_UNCOMMITTED:
-                        handleUncommittedRequest(elevator, floors);
-                        break;
-                }
+                checkElevatorRequests(elevators[i], i, floors);
             }
             // otherwise -> check if request can be handled
             else {
-                // @TODO: come up with a solution :((((
+                if(elevators[i].getElevatorDoorStatus() == IElevator.ELEVATOR_DOORS_CLOSED) {
+                    checkElevatorRequests(elevators[i], i, floors);
+                }
             }
         }
         mFloorRequestsToBeServiced.clear();
     }
 
-    private void handleUpwardRequest(Elevator elevator, Floor[] floors) {
+    private void checkElevatorRequests(Elevator elevator, int elevatorNum, Floor[] floors) {
+        // Check if there is another request in current direction
+        switch (elevator.getDirection()) {
+            case IElevator.ELEVATOR_DIRECTION_UP:
+                handleUpwardRequest(elevator, elevatorNum, floors);
+                break;
+
+            case IElevator.ELEVATOR_DIRECTION_DOWN:
+                handleDownwardRequest(elevator, elevatorNum, floors);
+                break;
+
+            case IElevator.ELEVATOR_DIRECTION_UNCOMMITTED:
+                handleUncommittedRequest(elevator, elevatorNum, floors);
+                break;
+        }
+    }
+
+    private void handleUpwardRequest(Elevator elevator, int elevatorNum, Floor[] floors) {
         int requestedFloor = findNextRequestedFloor(elevator, floors, true);
+
         if (requestedFloor > elevator.getCurrentFloor()) {
-            // @TODO: Send MQTT for upward movement
+            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
         } else {
-            // @TODO: Handle downward check
+            requestedFloor = findNextRequestedFloor(elevator, floors, false);
+
+            if(requestedFloor < elevator.getCurrentFloor()) {
+                sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
+                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
+            } else {
+                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+            }
         }
     }
 
-    private void handleDownwardRequest(Elevator elevator, Floor[] floors) {
+    private void handleDownwardRequest(Elevator elevator, int elevatorNum, Floor[] floors) {
         int requestedFloor = findNextRequestedFloor(elevator, floors, false);
+
         if (requestedFloor < elevator.getCurrentFloor()) {
-            // @TODO: Send MQTT for downward movement
+            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
         } else {
-            // @TODO: Handle upward check
+            requestedFloor = findNextRequestedFloor(elevator, floors, true);
+
+            if(requestedFloor > elevator.getCurrentFloor()) {
+                sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
+                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
+            } else {
+                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+            }
         }
     }
 
-    private void handleUncommittedRequest(Elevator elevator, Floor[] floors) {
+    private void handleUncommittedRequest(Elevator elevator, int elevatorNum, Floor[] floors) {
         int requestedFloorUp = findNextRequestedFloor(elevator, floors, true);
         int requestedFloorDown = findNextRequestedFloor(elevator, floors, false);
 
         if (requestedFloorUp == elevator.getCurrentFloor() && requestedFloorDown == elevator.getCurrentFloor()) {
-            // @TODO: Send uncommitted signal
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
         }
 
         int distanceToUp = Math.abs(elevator.getCurrentFloor() - requestedFloorUp);
@@ -271,9 +297,11 @@ public class ElevatorAlgorithm {
 
         // Send command to nearest target
         if (distanceToUp <= distanceToDown) {
-            // @TODO: Send up command
+            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorUp);
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
         } else {
-            // @TODO: Send down command
+            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorDown);
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
         }
     }
 
@@ -282,11 +310,13 @@ public class ElevatorAlgorithm {
         for (int i = (movingUp ? requestedFloor + 1 : requestedFloor - 1);
              movingUp ? i < floors.length : i >= 0;
              i = (movingUp ? i + 1 : i - 1)) {
+
             // Check requested floors from within elevator
             if (elevator.getElevatorButton(i) && elevator.getFloorService(i)) {
                 requestedFloor = i;
                 break;
             }
+
             // Check elevator requests from floor
             if ((movingUp ? floors[i].getButtonUpPressed() : floors[i].getButtonDownPressed()) &&
                     elevator.getFloorService(i) &&
@@ -296,5 +326,17 @@ public class ElevatorAlgorithm {
             }
         }
         return requestedFloor;
+    }
+
+    private void sendElevatorTargetFloor(Elevator elevator, int elevatorNumber, int targetFloor) {
+        mMqttClient.publishWith()
+                .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/" + elevatorNumber + MqttTopics.TARGET_FLOOR_SUBTOPIC)
+                .payload(String.valueOf(targetFloor).getBytes()).send();
+    }
+
+    private void sendElevatorDirection(Elevator elevator, int elevatorNumber, int direction) {
+        mMqttClient.publishWith()
+                .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/" + elevatorNumber + MqttTopics.DIRECTION_SUBTOPIC)
+                .payload(String.valueOf(direction).getBytes()).send();
     }
 }
