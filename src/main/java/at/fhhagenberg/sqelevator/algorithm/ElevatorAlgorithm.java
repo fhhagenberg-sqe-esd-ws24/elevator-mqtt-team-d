@@ -227,7 +227,7 @@ public class ElevatorAlgorithm {
         for (int i = 0; i < elevators.length; i++) {
             // Check if target location reached
             if (elevators[i].getCurrentFloor() == elevators[i].getTargetFloor()) {
-                if (elevators[i].getElevatorDoorStatus() != IElevator.ELEVATOR_DOORS_CLOSING) {
+                if (elevators[i].getElevatorDoorStatus() != IElevator.ELEVATOR_DOORS_OPEN) {
                     continue;
                 }
 
