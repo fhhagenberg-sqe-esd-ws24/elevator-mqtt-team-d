@@ -1,6 +1,6 @@
 package at.fhhagenberg.sqelevator.adapter;
 
-import at.fhhagenberg.sqelevator.IElevator;
+import sqelevator.IElevator;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import org.junit.jupiter.api.*;

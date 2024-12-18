@@ -2,9 +2,8 @@ package at.fhhagenberg.sqelevator.algorithm;
 
 import at.fhhagenberg.sqelevator.Elevator;
 import at.fhhagenberg.sqelevator.Floor;
-import at.fhhagenberg.sqelevator.IElevator;
+import sqelevator.IElevator;
 import at.fhhagenberg.sqelevator.MqttTopics;
-import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
@@ -185,7 +184,9 @@ public class ElevatorAlgorithm {
 
                     case MqttTopics.FLOOR_SERVICED_SUBTOPIC -> {
                         int floorNumber = Integer.parseInt(parts[3]);
-                        mElevatorState.getElevators()[elevatorNumber].setFloorService(Boolean.parseBoolean(new String(publish.getPayloadAsBytes())), floorNumber);
+                        if (floorNumber != 0) {
+                            mElevatorState.getElevators()[elevatorNumber].setFloorService(Boolean.parseBoolean(new String(publish.getPayloadAsBytes())), floorNumber);
+                        }
                     }
 
                     case MqttTopics.CAPACITY_SUBTOPIC -> {}
@@ -302,6 +303,7 @@ public class ElevatorAlgorithm {
 
         if (requestedFloorUp == elevator.getCurrentFloor() && requestedFloorDown == elevator.getCurrentFloor()) {
             sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+            return;
         }
 
         int distanceToUp = Math.abs(elevator.getCurrentFloor() - requestedFloorUp);

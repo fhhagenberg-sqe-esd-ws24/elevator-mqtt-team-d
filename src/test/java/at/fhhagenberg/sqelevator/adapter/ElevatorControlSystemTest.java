@@ -2,7 +2,7 @@ package at.fhhagenberg.sqelevator.adapter;
 
 import at.fhhagenberg.sqelevator.Elevator;
 import at.fhhagenberg.sqelevator.Floor;
-import at.fhhagenberg.sqelevator.IElevator;
+import sqelevator.IElevator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.HashMap;
 import io.vavr.control.Either;
 
-import static at.fhhagenberg.sqelevator.IElevator.*;
+import static sqelevator.IElevator.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

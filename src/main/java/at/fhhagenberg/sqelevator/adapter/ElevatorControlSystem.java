@@ -6,7 +6,7 @@ import java.util.Map;
 
 import at.fhhagenberg.sqelevator.Elevator;
 import at.fhhagenberg.sqelevator.Floor;
-import at.fhhagenberg.sqelevator.IElevator;
+import sqelevator.IElevator;
 import at.fhhagenberg.sqelevator.MqttTopics;
 import io.vavr.control.Either;
 
@@ -183,6 +183,9 @@ public class ElevatorControlSystem {
                     } else {
                         mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
                     }
+                }
+                else {
+                    mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_SERVICED_SUBTOPIC, i));
                 }
             }
         } catch (RemoteException e) {
