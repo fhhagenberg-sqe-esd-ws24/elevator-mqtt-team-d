@@ -16,7 +16,7 @@ public class ElevatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             new Elevator(-10, 1);
         });
-        assertEquals("Invalid constructor parameter", exception.getMessage());
+        assertEquals("Invalid number of floors", exception.getMessage());
     }
 
     /**
@@ -27,7 +27,7 @@ public class ElevatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             new Elevator(10, -1);
         });
-        assertEquals("Invalid constructor parameter", exception.getMessage());
+        assertEquals("Invalid capacity", exception.getMessage());
     }
 
     /**
@@ -68,13 +68,13 @@ public class ElevatorTest {
             elevator.setDirection(-1);
         });
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid elevator direction", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setDirection(3);
         });
         assertEquals(IElevator.ELEVATOR_DIRECTION_UNCOMMITTED, elevator.getDirection());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid elevator direction", exception.getMessage());
     }
 
     /**
@@ -130,12 +130,12 @@ public class ElevatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.getElevatorButton(-1);
         });
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.getElevatorButton(6);
         });
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
     }
 
     /**
@@ -148,12 +148,12 @@ public class ElevatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorButton(true, -1);
         });
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorButton(true, 6);
         });
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
     }
 
     /**
@@ -200,13 +200,13 @@ public class ElevatorTest {
             elevator.setElevatorDoorStatus(0);
         });
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid door status", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> {
             elevator.setElevatorDoorStatus(5);
         });
         assertEquals(IElevator.ELEVATOR_DOORS_CLOSED, elevator.getElevatorDoorStatus());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid door status", exception.getMessage());
     }
 
     /**
@@ -244,11 +244,11 @@ public class ElevatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> elevator.setCurrentFloor(-1));
         assertEquals(0, elevator.getCurrentFloor());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> elevator.setCurrentFloor(3));
         assertEquals(0, elevator.getCurrentFloor());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
     }
 
     /**
@@ -285,11 +285,11 @@ public class ElevatorTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> elevator.setTargetFloor(-1));
         assertEquals(0, elevator.getTargetFloor());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> elevator.setTargetFloor(3));
         assertEquals(0, elevator.getTargetFloor());
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
     }
 
     /**
@@ -327,10 +327,28 @@ public class ElevatorTest {
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> elevator.setFloorService(true, -1));
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> elevator.setFloorService(true, 3));
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid floor number", exception.getMessage());
+
+        exception = assertThrows(IllegalArgumentException.class, () -> elevator.setFloorService(false, 0));
+        assertEquals("Invalid floor number", exception.getMessage());
+    }
+
+    /**
+     * Tests whether the getter methods of service floor throws exceptions.
+     */
+    @Test
+    public void testGetServiceFloorThrow() {
+        Elevator elevator = new Elevator(2, 10);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> elevator.getFloorService(-1));
+        assertEquals("Invalid floor number", exception.getMessage());
+
+        exception = assertThrows(IllegalArgumentException.class, () -> elevator.getFloorService(12));
+        assertEquals("Invalid floor number", exception.getMessage());
     }
 
     /**
@@ -358,7 +376,7 @@ public class ElevatorTest {
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> elevator.setWeight(-10));
-        assertEquals("Invalid parameter", exception.getMessage());
+        assertEquals("Invalid weight", exception.getMessage());
     }
 
     /**
