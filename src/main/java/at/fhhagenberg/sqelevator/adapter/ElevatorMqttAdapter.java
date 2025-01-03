@@ -1,5 +1,7 @@
-package at.fhhagenberg.sqelevator;
+package at.fhhagenberg.sqelevator.adapter;
 
+import sqelevator.IElevator;
+import at.fhhagenberg.sqelevator.MqttTopics;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
@@ -53,16 +55,16 @@ public class ElevatorMqttAdapter {
             client.run(interval);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // TODO: reconnect to RMI
         }
     }
 
-    public void run(int interval) throws InterruptedException, RemoteException {
+    public void run(int interval) throws Exception {
         // Initialize elevators and floors
         mControlSystem.initializeElevatorsViaPLC();
 
         // check broker connection
-        while(connectToBroker() == false) {
+        while(!connectToBroker()) {
             System.out.println("Failed to connect to broker. Retrying in 5 seconds...");
             Thread.sleep(5000);
         }
@@ -82,34 +84,41 @@ public class ElevatorMqttAdapter {
             boolean initial = true;
             @Override
             public void run() {
-                pollPLC(initial);
-                initial = false;
+                if (mConnectionStatus) {
+                    pollPLC(initial);
+                    initial = false;
+                }
             }
         }, 0, interval);
     }
 
     private void pollPLC(boolean initial) {
-        if(initial){
-            mControlSystem.initialUpdateDataViaPLC();
-        }
-        else {
-            mControlSystem.updateDataViaPLC();
-        }
-
-        var topicsToPublish = mControlSystem.getUpdateTopics();
-
-        // Publish to MQTT
-        for (var entry : topicsToPublish.entrySet()) {
-            String topic = entry.getKey();
-            Either<Integer, Boolean> value = entry.getValue();
-
-            if (value.isLeft()) {
-                int intValue = value.getLeft();
-                mMqttClient.publishWith().topic(topic).payload(String.valueOf(intValue).getBytes()).send();
-            } else {
-                boolean boolValue = value.get();
-                mMqttClient.publishWith().topic(topic).payload(String.valueOf(boolValue).getBytes()).send();
+        try {
+            if(initial){
+                mControlSystem.initialUpdateDataViaPLC();
             }
+            else {
+                mControlSystem.updateDataViaPLC();
+            }
+
+            var topicsToPublish = mControlSystem.getUpdateTopics();
+
+            // Publish to MQTT
+            for (var entry : topicsToPublish.entrySet()) {
+                String topic = entry.getKey();
+                Either<Integer, Boolean> value = entry.getValue();
+
+                if (value.isLeft()) {
+                    int intValue = value.getLeft();
+                    mMqttClient.publishWith().topic(topic).payload(String.valueOf(intValue).getBytes()).send();
+                } else {
+                    boolean boolValue = value.get();
+                    mMqttClient.publishWith().topic(topic).payload(String.valueOf(boolValue).getBytes()).send();
+                }
+            }
+        }
+        catch (Exception e) {
+            // TODO: reconnect to RMI
         }
     }
 
@@ -121,14 +130,17 @@ public class ElevatorMqttAdapter {
             if (mMqttClient.getState().isConnected()){
                 return true;
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
         } catch (Exception e) {
-            e.printStackTrace();
+            return false;
         }
 
         return false;
     }
 
-    private void publishRetainedMessages() throws RemoteException {
+    private void publishRetainedMessages() {
         mMqttClient.publishWith()
                 .topic(MqttTopics.INFO_TOPIC + MqttTopics.NUM_OF_ELEVATORS_SUBTOPIC).retain(true)
                 .payload(String.valueOf(mControlSystem.getElevators().length).getBytes()).send();
@@ -159,7 +171,7 @@ public class ElevatorMqttAdapter {
 
         if (parts.length == 2) {
             if(("/" + parts[1]).equals(MqttTopics.CONNECTION_STATUS_SUBTOPIC)) {
-                mConnectionStatus = (Boolean.parseBoolean(new String(publish.getPayloadAsBytes())) ? true : false);
+                mConnectionStatus = (Boolean.parseBoolean(new String(publish.getPayloadAsBytes())));
             }
             else {
                 System.out.println("Unknown subtopic in subscribeToTopics: " + topic);
@@ -189,7 +201,11 @@ public class ElevatorMqttAdapter {
                     break;
             }
         } catch (RemoteException e) {
-            e.printStackTrace();
+            // TODO: reconnect to RMI
         }
+    }
+
+    void reconnectToRMI() {
+
     }
 }
