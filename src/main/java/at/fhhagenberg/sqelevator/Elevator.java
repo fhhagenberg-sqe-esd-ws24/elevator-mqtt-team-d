@@ -29,6 +29,9 @@ public class Elevator {
     /**< The status of the floor service. */
     private final boolean[] mFloorService;
 
+    /**< Invalid floor number error constant. */
+    private static final String cErrFloorNumber = "Invalid floor number";
+
     /**
      * CTor which instantiates all members.
      *
@@ -37,10 +40,10 @@ public class Elevator {
      */
     public Elevator(int numOfFloors, int capacity) {
         if(numOfFloors < 0)
-            throw new IllegalArgumentException("Invalid constructor parameter");
+            throw new IllegalArgumentException("Invalid number of floors");
 
         if(capacity < 0)
-            throw new IllegalArgumentException("Invalid constructor parameter");
+            throw new IllegalArgumentException("Invalid capacity");
 
         mCapacity = capacity;
         mNumOfFloors = numOfFloors;
@@ -65,7 +68,7 @@ public class Elevator {
      */
     public boolean setDirection(int direction) {
         if(direction < IElevator.ELEVATOR_DIRECTION_UP || direction > IElevator.ELEVATOR_DIRECTION_UNCOMMITTED) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid elevator direction");
         }
 
         if (direction != mDirection) {
@@ -103,7 +106,7 @@ public class Elevator {
      */
     public boolean getElevatorButton(int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException(cErrFloorNumber);
         }
 
         return mButtonStatus[floor];
@@ -117,7 +120,7 @@ public class Elevator {
      */
     public boolean setElevatorButton(boolean buttonStatus, int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException(cErrFloorNumber);
         }
 
         if (buttonStatus != mButtonStatus[floor]) {
@@ -142,7 +145,7 @@ public class Elevator {
      */
     public boolean setElevatorDoorStatus(int doorStatus) {
         if(doorStatus < IElevator.ELEVATOR_DOORS_OPEN || doorStatus > IElevator.ELEVATOR_DOORS_CLOSING) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid door status");
         }
 
         if (doorStatus != mElevatorDoorStatus) {
@@ -167,7 +170,7 @@ public class Elevator {
      */
     public boolean setCurrentFloor(int currentFloor) {
         if(currentFloor < 0 || currentFloor >= mNumOfFloors) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException(cErrFloorNumber);
         }
 
         if (currentFloor != mCurrentFloor) {
@@ -192,7 +195,7 @@ public class Elevator {
      */
     public boolean setTargetFloor(int targetFloor) {
         if(targetFloor < 0 || targetFloor >= mNumOfFloors){
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException(cErrFloorNumber);
         }
 
         if (targetFloor != mTargetFloor) {
@@ -209,7 +212,7 @@ public class Elevator {
      */
     public boolean getFloorService(int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException(cErrFloorNumber);
         }
 
         return mFloorService[floor];
@@ -223,7 +226,7 @@ public class Elevator {
      */
     public boolean setFloorService(boolean service, int floor) {
         if(floor < 1 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException(cErrFloorNumber);
         }
 
         if (service != mFloorService[floor]) {
@@ -248,7 +251,7 @@ public class Elevator {
      */
     public boolean setWeight(int weight) {
         if(weight < 0) {
-            throw new IllegalArgumentException("Invalid parameter");
+            throw new IllegalArgumentException("Invalid weight");
         }
 
         if (weight != mCurrentWeight) {
