@@ -185,11 +185,11 @@ public class ElevatorAlgorithmTest {
         latch.set(new CountDownLatch(1));
 
         publisher.publishWith()
-                .topic("elevator/0/current_floor/")
+                .topic("elevator/0/current_floor")
                 .payload("1".getBytes())
                 .send();
         publisher.publishWith()
-                .topic("elevator/0/target_floor/")
+                .topic("elevator/0/target_floor")
                 .payload("1".getBytes())
                 .send();
         publisher.publishWith()
@@ -276,7 +276,7 @@ public class ElevatorAlgorithmTest {
                 .payload("1".getBytes())
                 .send();
         publisher.publishWith()
-                .topic("elevator/0/target_floor/1")
+                .topic("elevator/0/target_floor")
                 .payload("1".getBytes())
                 .send();
         publisher.publishWith()
@@ -298,5 +298,188 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    @Test
+    public void testUncommittedUpDown() throws Exception {
+        assertTrue(connected);
 
+        final AtomicReference<Map<String, String>> expectedMessages = new AtomicReference<>(Map.of(
+                "elevator_control/0/direction", "2"
+        ));
+        final AtomicReference<Map<String, String>> receivedMessages = new AtomicReference<>(new ConcurrentHashMap<>());
+        final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(1));
+
+        Mqtt5AsyncClient subscriber = Mqtt5Client.builder()
+                .identifier(UUID.randomUUID().toString())
+                .serverHost(hivemqCe.getHost())
+                .serverPort(hivemqCe.getMqttPort())
+                .buildAsync();
+
+        subscriber.connect();
+        subscriber.subscribeWith()
+                .addSubscription()
+                .topicFilter("elevator_control/+/direction")
+                .applySubscription()
+                .addSubscription()
+                .topicFilter("elevator_control/+/target_floor")
+                .applySubscription()
+                .callback(message -> {
+                    String payload = new String(message.getPayloadAsBytes());
+                    String topic = message.getTopic().toString();
+                    if (expectedMessages.get().containsKey(topic) && payload.equals(expectedMessages.get().get(topic)) && !receivedMessages.get().containsKey(topic)) {
+                        receivedMessages.get().put(topic, payload);
+                        latch.get().countDown();
+                    }
+                })
+                .send();
+
+        publisher.publishWith()
+                .topic("elevator/0/door_status")
+                .payload("1".getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        expectedMessages.set(Map.of(
+                "elevator_control/0/direction", "0",
+                "elevator_control/0/target_floor", "1"
+        ));
+        receivedMessages.set(new ConcurrentHashMap<>());
+        latch.set(new CountDownLatch(2));
+
+        publisher.publishWith()
+                .topic("elevator/0/floor_requested/1/")
+                .payload(String.valueOf(true).getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        expectedMessages.set(Map.of(
+                "elevator_control/0/direction", "1",
+                "elevator_control/0/target_floor", "0"
+        ));
+        receivedMessages.set(new ConcurrentHashMap<>());
+        latch.set(new CountDownLatch(2));
+
+        publisher.publishWith()
+                .topic("elevator/0/current_floor")
+                .payload("1".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/target_floor")
+                .payload("1".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/direction")
+                .payload("0".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/floor_requested/0")
+                .payload(String.valueOf(true).getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/floor_requested/1")
+                .payload(String.valueOf(false).getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        subscriber.disconnect();
+    }
+
+    @Test
+    public void testUncommittedDownUncommitted() throws Exception {
+        assertTrue(connected);
+
+        final AtomicReference<Map<String, String>> expectedMessages = new AtomicReference<>(Map.of(
+                "elevator_control/0/direction", "2"
+        ));
+        final AtomicReference<Map<String, String>> receivedMessages = new AtomicReference<>(new ConcurrentHashMap<>());
+        final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(1));
+
+        Mqtt5AsyncClient subscriber = Mqtt5Client.builder()
+                .identifier(UUID.randomUUID().toString())
+                .serverHost(hivemqCe.getHost())
+                .serverPort(hivemqCe.getMqttPort())
+                .buildAsync();
+
+        subscriber.connect();
+        subscriber.subscribeWith()
+                .addSubscription()
+                .topicFilter("elevator_control/+/direction")
+                .applySubscription()
+                .addSubscription()
+                .topicFilter("elevator_control/+/target_floor")
+                .applySubscription()
+                .callback(message -> {
+                    String payload = new String(message.getPayloadAsBytes());
+                    String topic = message.getTopic().toString();
+                    if (expectedMessages.get().containsKey(topic) && payload.equals(expectedMessages.get().get(topic)) && !receivedMessages.get().containsKey(topic)) {
+                        receivedMessages.get().put(topic, payload);
+                        latch.get().countDown();
+                    }
+                })
+                .send();
+
+        publisher.publishWith()
+                .topic("elevator/0/door_status")
+                .payload("1".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/target_floor")
+                .payload("1".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/current_floor")
+                .payload("1".getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        expectedMessages.set(Map.of(
+                "elevator_control/0/direction", "1",
+                "elevator_control/0/target_floor", "0"
+        ));
+        receivedMessages.set(new ConcurrentHashMap<>());
+        latch.set(new CountDownLatch(2));
+
+        publisher.publishWith()
+                .topic("elevator/0/floor_requested/0/")
+                .payload(String.valueOf(true).getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        expectedMessages.set(Map.of(
+                "elevator_control/0/direction", "2"
+        ));
+        receivedMessages.set(new ConcurrentHashMap<>());
+        latch.set(new CountDownLatch(1));
+
+        publisher.publishWith()
+                .topic("elevator/0/current_floor")
+                .payload("0".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/target_floor")
+                .payload("0".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/direction")
+                .payload("1".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/floor_requested/0")
+                .payload(String.valueOf(false).getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        subscriber.disconnect();
+    }
 }
