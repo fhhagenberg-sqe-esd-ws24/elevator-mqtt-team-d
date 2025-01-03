@@ -2,6 +2,7 @@ package at.fhhagenberg.sqelevator;
 
 import java.util.HashMap;
 import java.rmi.RemoteException;
+import java.util.Map;
 
 import io.vavr.control.Either;
 
@@ -104,7 +105,7 @@ public class ElevatorControlSystem {
      * Returns the set of topics which need to be updated.
      * @return The set of topics.
      */
-    public HashMap<String, Either<Integer, Boolean>> getUpdateTopics() {
+    public Map<String, Either<Integer, Boolean>> getUpdateTopics() {
         return mUpdateTopics;
     }
 

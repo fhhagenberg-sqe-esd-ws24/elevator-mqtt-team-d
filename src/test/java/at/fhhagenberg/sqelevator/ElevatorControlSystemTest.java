@@ -165,7 +165,7 @@ public class ElevatorControlSystemTest {
 
         ecs.updateDataViaPLC();
 
-        HashMap<String, Either<Integer, Boolean>> s = ecs.getUpdateTopics();
+        HashMap<String, Either<Integer, Boolean>> s = (HashMap<String, Either<Integer, Boolean>>) ecs.getUpdateTopics();
         assertEquals(Either.left(ELEVATOR_DIRECTION_UP),s.get("elevator/0/direction"));
         assertEquals(Either.left(30),s.get("elevator/0/acceleration"));
         assertEquals(Either.left(10),s.get("elevator/0/speed"));
@@ -337,7 +337,7 @@ public class ElevatorControlSystemTest {
         Elevator[] elevators = ecs.getElevators();
         Floor[] floors = ecs.getFloors();
 
-        HashMap<String, Either<Integer, Boolean>> s = ecs.getUpdateTopics();
+        HashMap<String, Either<Integer, Boolean>> s = (HashMap<String, Either<Integer, Boolean>>) ecs.getUpdateTopics();
         assertEquals(Either.left(ELEVATOR_DIRECTION_UP),s.get("elevator/0/direction"));
         assertEquals(Either.left(30),s.get("elevator/0/acceleration"));
         assertEquals(Either.left(10),s.get("elevator/0/speed"));
