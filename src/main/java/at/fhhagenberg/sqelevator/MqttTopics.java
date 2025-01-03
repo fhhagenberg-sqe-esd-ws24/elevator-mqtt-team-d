@@ -4,6 +4,11 @@ package at.fhhagenberg.sqelevator;
  * Class which represents the MQTT topics.
  */
 public class MqttTopics {
+
+    private MqttTopics() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /** The topic for the elevator control. */
     public static final String ELEVATOR_CONTROL_TOPIC = "elevator_control";
     /** The subtopic for the connection status of the algorithm. */
