@@ -126,10 +126,9 @@ public class ElevatorAlgorithmTest {
         assertTrue(connected);
 
         final AtomicReference<Map<String, String>> expectedMessages = new AtomicReference<>(Map.of(
-                "elevator/0/direction", "2",
-                "elevator/0/target_floor", "0"
+                "elevator_control/0/direction", "2"
         ));
-        final AtomicReference<ConcurrentHashMap<String, String>> receivedMessages = new AtomicReference<>(new ConcurrentHashMap<>());
+        final AtomicReference<Map<String, String>> receivedMessages = new AtomicReference<>(new ConcurrentHashMap<>());
         final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(2));
 
         Mqtt5AsyncClient subscriber = Mqtt5Client.builder()
@@ -138,56 +137,63 @@ public class ElevatorAlgorithmTest {
                 .serverPort(hivemqCe.getMqttPort())
                 .buildAsync();
 
-
+        subscriber.connect();
         subscriber.subscribeWith()
                 .addSubscription()
-                    .topicFilter("elevator/+/direction")
-                    .applySubscription()
+                .topicFilter("elevator_control/+/direction")
+                .applySubscription()
                 .addSubscription()
-                    .topicFilter("elevator/+/target_floor")
-                    .applySubscription()
+                .topicFilter("elevator_control/+/target_floor")
+                .applySubscription()
                 .callback(message -> {
                     String payload = new String(message.getPayloadAsBytes());
-                    if (expectedMessages.get().containsKey(message.getTopic().toString()) && payload.equals(expectedMessages.get().get(message.getTopic().toString()))) {
-                        receivedMessages.get().put(message.getTopic().toString(), payload);
+                    String topic = message.getTopic().toString();
+                    if (expectedMessages.get().containsKey(topic) && payload.equals(expectedMessages.get().get(topic))) {
+                        receivedMessages.get().put(topic, payload);
                         latch.get().countDown();
                     }
                 })
                 .send();
 
+        publisher.publishWith()
+                .topic("elevator/0/door_status")
+                .payload("1".getBytes())
+                .send();
+
         latch.get().await();
-        assertEquals(expectedMessages, receivedMessages);
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
 
         expectedMessages.set(Map.of(
-                "elevator/0/direction", "0",
-                "elevator/0/target_floor", "1"
+                "elevator_control/0/direction", "0",
+                "elevator_control/0/target_floor", "1"
         ));
         receivedMessages.set(new ConcurrentHashMap<>());
         latch.set(new CountDownLatch(2));
 
         publisher.publishWith()
-                .topic("elevator/0/floor_requested")
-                .payload("1".getBytes())
+                .topic("elevator/0/floor_requested/1/")
+                .payload(String.valueOf(true).getBytes())
                 .send();
 
         latch.get().await();
-        assertEquals(expectedMessages, receivedMessages);
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
 
         expectedMessages.set(Map.of(
-                "elevator/0/direction", "2",
-                "elevator/0/target_floor", "1"
+                "elevator_control/0/direction", "2"
         ));
         receivedMessages.set(new ConcurrentHashMap<>());
         latch.set(new CountDownLatch(2));
 
         publisher.publishWith()
-                .topic("elevator/0/current_floor")
-                .payload("1".getBytes())
+                .topic("elevator/0/floor_requested/1")
+                .payload(String.valueOf(false).getBytes())
                 .send();
 
         latch.get().await();
-        assertEquals(expectedMessages, receivedMessages);
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
 
         subscriber.disconnect();
     }
+
+
 }

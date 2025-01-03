@@ -312,6 +312,17 @@ public class ElevatorAlgorithm {
         int distanceToUp = Math.abs(elevator.getCurrentFloor() - requestedFloorUp);
         int distanceToDown = Math.abs(elevator.getCurrentFloor() - requestedFloorDown);
 
+        if (distanceToUp == 0) {
+            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorDown);
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
+            return;
+        }
+        if (distanceToDown == 0) {
+            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorUp);
+            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
+            return;
+        }
+
         // Send command to nearest target
         if (distanceToUp <= distanceToDown) {
             sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorUp);
