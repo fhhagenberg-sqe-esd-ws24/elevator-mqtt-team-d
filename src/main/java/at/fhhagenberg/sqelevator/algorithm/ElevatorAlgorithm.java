@@ -58,8 +58,8 @@ public class ElevatorAlgorithm {
             Thread.sleep(5000);
         }
 
-        // subscribe to topics
-        subscribeToTopics();
+        // subscribe to retained topics
+        subscribeToRetainedTopics();
 
         // wait until static information has been received
         while(mNrOfElevators == 0 || mNrOfFloors == 0 || mFloorHeight == 0 || mMaxPassengers.size() != mNrOfElevators) {
@@ -69,6 +69,9 @@ public class ElevatorAlgorithm {
         // initialize elevator state
         mElevatorState = new ElevatorState(mNrOfElevators, mNrOfFloors, mFloorHeight,
                 mMaxPassengers.values().stream().mapToInt(Integer::intValue).toArray());
+
+        // subscribe to topics
+        subscribeToTopics();
 
         // set connection status to true to signal availability
         publishConnectionStatus();
@@ -98,19 +101,20 @@ public class ElevatorAlgorithm {
         return false;
     }
 
-    private void subscribeToTopics() {
+    private void subscribeToRetainedTopics() {
         // Subscribe to info topic
         mMqttClient.subscribeWith()
                 .addSubscription()
-                    .topicFilter(MqttTopics.INFO_TOPIC + "/#")
-                    .applySubscription()
+                .topicFilter(MqttTopics.INFO_TOPIC + "/#")
+                .applySubscription()
                 .addSubscription()
-                    .topicFilter(MqttTopics.ELEVATOR_TOPIC + "/+" + MqttTopics.CAPACITY_SUBTOPIC)
-                    .applySubscription()
+                .topicFilter(MqttTopics.ELEVATOR_TOPIC + "/+" + MqttTopics.CAPACITY_SUBTOPIC)
+                .applySubscription()
                 .callback(this::retainedMessagesMqttCallback)
                 .send();
+    }
 
-
+    private void subscribeToTopics() {
         // Subscribe to elevator and floor topics
         mMqttClient.subscribeWith()
                 .addSubscription()
@@ -336,9 +340,28 @@ public class ElevatorAlgorithm {
                     elevator.getFloorService(i) &&
                     !mFloorRequestsToBeServiced.contains(i)) {
                 requestedFloor = i;
+                mFloorRequestsToBeServiced.add(i);
                 break;
             }
         }
+
+        // if no new requested floor found, also check direction switch
+        if (requestedFloor == elevator.getCurrentFloor()) {
+            for (int i = (movingUp ? floors.length - 1 : 0);
+                 movingUp ? i > elevator.getCurrentFloor() : i < elevator.getCurrentFloor();
+                 i = (movingUp ? i - 1 : i + 1)) {
+
+                // check elevator requests from floor
+                if ((movingUp ? floors[i].getButtonDownPressed() : floors[i].getButtonUpPressed()) &&
+                elevator.getFloorService(i) &&
+                        !mFloorRequestsToBeServiced.contains(i)) {
+                    requestedFloor = i;
+                    mFloorRequestsToBeServiced.add(i);
+                    break;
+                }
+            }
+        }
+
         return requestedFloor;
     }
 
