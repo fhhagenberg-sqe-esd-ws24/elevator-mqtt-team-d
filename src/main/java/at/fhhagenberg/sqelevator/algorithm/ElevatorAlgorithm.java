@@ -47,7 +47,8 @@ public class ElevatorAlgorithm {
             algorithm.run();
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Configuration Error: " + e.getMessage());
+            System.exit(1);
         }
     }
 
