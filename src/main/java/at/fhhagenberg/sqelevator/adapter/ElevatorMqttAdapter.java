@@ -130,6 +130,9 @@ public class ElevatorMqttAdapter {
             if (mMqttClient.getState().isConnected()){
                 return true;
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
         } catch (Exception e) {
             return false;
         }
