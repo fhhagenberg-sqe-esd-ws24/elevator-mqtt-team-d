@@ -22,7 +22,7 @@ public class ElevatorAlgorithm {
     private final Map<Integer, Integer> mMaxPassengers = new HashMap<Integer, Integer>();
 
     private ElevatorState mElevatorState;
-    private TreeSet<Integer> mFloorRequestsToBeServiced = new TreeSet<>();
+    private final TreeSet<Integer> mFloorRequestsToBeServiced = new TreeSet<>();
 
     public ElevatorAlgorithm(Mqtt5AsyncClient mqttClient) {
         mMqttClient = mqttClient;
@@ -95,7 +95,7 @@ public class ElevatorAlgorithm {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            return false;
         }
 
         return false;
@@ -220,7 +220,6 @@ public class ElevatorAlgorithm {
         mMqttClient.publishWith()
                 .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + MqttTopics.CONNECTION_STATUS_SUBTOPIC)
                 .payload(String.valueOf(true).getBytes())
-                .retain(true)
                 .send();
     }
 
