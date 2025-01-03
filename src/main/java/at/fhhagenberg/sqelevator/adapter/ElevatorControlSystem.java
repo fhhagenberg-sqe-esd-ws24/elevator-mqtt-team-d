@@ -1,5 +1,7 @@
 package at.fhhagenberg.sqelevator.adapter;
 
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.Map;
 import java.util.HashMap;
 import at.fhhagenberg.sqelevator.Elevator;
@@ -38,7 +40,7 @@ public class ElevatorControlSystem {
     /**
      * Initializes the elevators and floors via the PLC. Only called once at startup.
      */
-    public void initializeElevatorsViaPLC() throws Exception {
+    public void initializeElevatorsViaPLC() throws RemoteException {
         // Fetch data from PLC
         int numOfElevators = mPLC.getElevatorNum();
         int numOfFloors = mPLC.getFloorNum();
@@ -68,7 +70,7 @@ public class ElevatorControlSystem {
     /**
      * Updates the data via the PLC. Gets called periodically.
      */
-    public void updateDataViaPLC() throws Exception {
+    public void updateDataViaPLC() throws RemoteException {
         if (mElevators == null) {
             return;
         }
@@ -85,7 +87,7 @@ public class ElevatorControlSystem {
     /**
      *
      */
-    public void initialUpdateDataViaPLC() throws Exception {
+    public void initialUpdateDataViaPLC() throws RemoteException {
         if (mElevators == null) {
             return;
         }
@@ -111,7 +113,7 @@ public class ElevatorControlSystem {
      * Updates the elevator data.
      * @param elevatorNumber The elevator number.
      */
-    private void updateElevator(int elevatorNumber) throws Exception {
+    private void updateElevator(int elevatorNumber) throws RemoteException {
         assert (elevatorNumber < mElevators.length && elevatorNumber >= 0);
         if (mElevators[elevatorNumber].setDirection(mPLC.getCommittedDirection(elevatorNumber))) {
             mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DIRECTION_SUBTOPIC), Either.left(mPLC.getCommittedDirection(elevatorNumber)));
@@ -187,7 +189,7 @@ public class ElevatorControlSystem {
      * Initially updates the elevator data.
      * @param elevatorNumber The elevator number.
      */
-    private void initialUpdateElevator(int elevatorNumber) throws Exception {
+    private void initialUpdateElevator(int elevatorNumber) throws RemoteException {
         assert (elevatorNumber < mElevators.length && elevatorNumber >= 0);
         mElevators[elevatorNumber].setDirection(mPLC.getCommittedDirection(elevatorNumber));
         mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.DIRECTION_SUBTOPIC), Either.left(mPLC.getCommittedDirection(elevatorNumber)));
@@ -228,7 +230,7 @@ public class ElevatorControlSystem {
      * Updates the floor data.
      * @param floorNumber The floor number.
      */
-    private void updateFloor(int floorNumber) throws Exception{
+    private void updateFloor(int floorNumber) throws RemoteException{
         assert (floorNumber < mFloors.length && floorNumber >= 0);
         if (mFloors[floorNumber].setButtonUpPressed(mPLC.getFloorButtonUp(floorNumber))) {
             mUpdateTopics.put(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_UP_SUBTOPIC), Either.right(mPLC.getFloorButtonUp(floorNumber)));
@@ -249,7 +251,7 @@ public class ElevatorControlSystem {
      * Initial updates the floor data.
      * @param floorNumber The floor number.
      */
-    private void initialUpdateFloor(int floorNumber) throws Exception {
+    private void initialUpdateFloor(int floorNumber) throws RemoteException {
         assert (floorNumber < mFloors.length && floorNumber >= 0);
         mFloors[floorNumber].setButtonUpPressed(mPLC.getFloorButtonUp(floorNumber));
         mUpdateTopics.put(formatFloorUpdateTopic(floorNumber, MqttTopics.BUTTON_UP_SUBTOPIC), Either.right(mPLC.getFloorButtonUp(floorNumber)));
