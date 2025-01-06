@@ -1,6 +1,5 @@
-package at.fhhagenberg.sqelevator.adapter;
+package at.fhhagenberg.sqelevator;
 
-import at.fhhagenberg.sqelevator.Floor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

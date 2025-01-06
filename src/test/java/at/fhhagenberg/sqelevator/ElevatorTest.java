@@ -1,8 +1,7 @@
-package at.fhhagenberg.sqelevator.adapter;
+package at.fhhagenberg.sqelevator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import at.fhhagenberg.sqelevator.Elevator;
 import sqelevator.IElevator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
