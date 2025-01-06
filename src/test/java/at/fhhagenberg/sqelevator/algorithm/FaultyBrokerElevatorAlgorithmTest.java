@@ -1,5 +1,7 @@
 package at.fhhagenberg.sqelevator.algorithm;
 
+import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,18 +26,32 @@ import static org.awaitility.Awaitility.await;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class FaultyBrokerElevatorAlgorithmTest {
+public class FaultyBrokerElevatorAlgorithmTest {
     private ElevatorAlgorithm elevatorAlgorithm;
 
     @Mock
     private Mqtt5AsyncClient mockMqttClient;
 
-    private static final Logger logger = Logger.getLogger(ElevatorAlgorithm.class.getName());
+    private Thread testThread;
+
+    private final Logger logger = Logger.getLogger(ElevatorAlgorithm.class.getName());
 
     @BeforeEach
     void setUp() {
         when(mockMqttClient.connect()).thenThrow(new RuntimeException("Connection failed")).thenReturn(null);
         elevatorAlgorithm = new ElevatorAlgorithm(mockMqttClient);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (testThread != null) {
+            testThread.interrupt();
+            testThread.join();
+        }
+        // Clean up logging after each test
+        for (java.util.logging.Handler handler : logger.getHandlers()) {
+            logger.removeHandler(handler);
+        }
     }
 
     @Test
@@ -45,7 +61,7 @@ class FaultyBrokerElevatorAlgorithmTest {
         consoleHandler.setLevel(Level.ALL); // Capture all levels of logs
         logger.addHandler(consoleHandler);
 
-        Thread testThread = new Thread(() -> {
+        testThread = new Thread(() -> {
             try {
                 elevatorAlgorithm.run();
             }

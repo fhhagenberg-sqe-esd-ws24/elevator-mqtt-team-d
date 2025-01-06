@@ -1,5 +1,6 @@
 package at.fhhagenberg.sqelevator.adapter;
 
+import org.testcontainers.junit.jupiter.Testcontainers;
 import sqelevator.IElevator;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
+@Testcontainers
 public class ElevatorMqttAdapterTest {
     @Container
     static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));

@@ -1,5 +1,7 @@
 package at.fhhagenberg.sqelevator.adapter;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +25,7 @@ import static org.mockito.Mockito.*;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class FaultyBrokerElevatorMqttAdapterTest {
+public class FaultyBrokerElevatorMqttAdapterTest {
     private ElevatorMqttAdapter adapter;
 
     @Mock
@@ -32,7 +34,9 @@ class FaultyBrokerElevatorMqttAdapterTest {
     @Mock
     private IElevator plc;
 
-    private static final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
+    private Thread testThread;
+
+    private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
     @BeforeEach
     void setUp() throws Exception {
@@ -73,6 +77,18 @@ class FaultyBrokerElevatorMqttAdapterTest {
         adapter = new ElevatorMqttAdapter(plc, mockMqttClient);
     }
 
+    @AfterEach
+    void tearDown() throws Exception {
+        if (testThread != null) {
+            testThread.interrupt();
+            testThread.join();
+        }
+        // Clean up logging after each test
+        for (java.util.logging.Handler handler : logger.getHandlers()) {
+            logger.removeHandler(handler);
+        }
+    }
+
     @Test
     void testRunWithFaultyBrokerConnection() throws Exception {
         when(mockMqttClient.connect()).thenThrow(new RuntimeException("Connection failed")).thenReturn(null);
@@ -82,7 +98,7 @@ class FaultyBrokerElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL); // Capture all levels of logs
         logger.addHandler(consoleHandler);
 
-        Thread testThread = new Thread(() -> {
+        testThread = new Thread(() -> {
             try {
                 adapter.run(500);
             }

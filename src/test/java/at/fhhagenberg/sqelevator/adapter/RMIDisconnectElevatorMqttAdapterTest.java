@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.testcontainers.hivemq.HiveMQContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import sqelevator.IElevator;
 
@@ -17,7 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.*;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
+@Testcontainers
 public class RMIDisconnectElevatorMqttAdapterTest {
     @Container
     static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
@@ -38,20 +40,18 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     private Mqtt5AsyncClient mqttClient;
     ElevatorMqttAdapter client;
 
-    private static final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
+    private ExecutorService executorService;
+
+    private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
     @BeforeAll
-    public static void setUpAll() {
-        hivemqCe.start();
-    }
+    public static void setUpAll() { hivemqCe.start(); }
 
     @AfterAll
     public static void tearDownAll() { hivemqCe.stop(); }
 
     @BeforeEach
     public void setUp() throws Exception {
-        // set up MqttClient
-
         mqttClient = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost(hivemqCe.getHost())
@@ -103,11 +103,21 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         when(plc.getCommittedDirection(0)).thenReturn(1);
 
         client = new ElevatorMqttAdapter(plc, mqttClient);
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     @AfterEach
     void tearDown() {
         publisher.disconnect();
+        mqttClient.disconnect();
+        executorService.shutdownNow();
+        try {
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                System.err.println("Executor service did not terminate");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Test
@@ -116,22 +126,19 @@ public class RMIDisconnectElevatorMqttAdapterTest {
 
         ByteArrayOutputStream logStream = new ByteArrayOutputStream();
         ConsoleHandler consoleHandler = new CaptureLoggingConsoleHandler(logStream);
-        consoleHandler.setLevel(Level.ALL); // Capture all levels of logs
+        consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        Thread testThread = new Thread(() -> {
+        executorService.submit(() -> {
             try {
-                client.run(500);
-            }
-            catch (Exception e) {
-                // do nothing, suppress InterruptedException warning during Thread.sleep()
+                client.run(250);
+            } catch (Exception e) {
+                // Suppress interruptions
             }
         });
-        testThread.start();
-        await().atMost(6, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
 
-        testThread.interrupt();
-        testThread.join();
+        await().atMost(3, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        logger.removeHandler(consoleHandler);
     }
 
     @Test
@@ -141,18 +148,16 @@ public class RMIDisconnectElevatorMqttAdapterTest {
 
         ByteArrayOutputStream logStream = new ByteArrayOutputStream();
         ConsoleHandler consoleHandler = new CaptureLoggingConsoleHandler(logStream);
-        consoleHandler.setLevel(Level.ALL); // Capture all levels of logs
+        consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        Thread testThread = new Thread(() -> {
+        executorService.submit(() -> {
             try {
                 client.run(250);
-            }
-            catch (Exception e) {
-                // do nothing, suppress InterruptedException warning during Thread.sleep()
+            } catch (Exception e) {
+                // Suppress interruptions
             }
         });
-        testThread.start();
 
         publisher.publishWith()
                 .topic("elevator_control/0/direction").retain(true)
@@ -160,9 +165,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .send();
 
         await().atMost(3, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
-
-        testThread.interrupt();
-        testThread.join();
+        logger.removeHandler(consoleHandler);
     }
 
     @Test
@@ -172,18 +175,16 @@ public class RMIDisconnectElevatorMqttAdapterTest {
 
         ByteArrayOutputStream logStream = new ByteArrayOutputStream();
         ConsoleHandler consoleHandler = new CaptureLoggingConsoleHandler(logStream);
-        consoleHandler.setLevel(Level.ALL); // Capture all levels of logs
+        consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        Thread testThread = new Thread(() -> {
+        executorService.submit(() -> {
             try {
                 client.run(250);
-            }
-            catch (Exception e) {
-                // do nothing, suppress InterruptedException warning during Thread.sleep()
+            } catch (Exception e) {
+                // Suppress interruptions
             }
         });
-        testThread.start();
 
         publisher.publishWith()
                 .topic("elevator_control/0/target_floor").retain(true)
@@ -191,9 +192,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .send();
 
         await().atMost(3, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
-
-        testThread.interrupt();
-        testThread.join();
+        logger.removeHandler(consoleHandler);
     }
 
     private static class CaptureLoggingConsoleHandler extends ConsoleHandler {

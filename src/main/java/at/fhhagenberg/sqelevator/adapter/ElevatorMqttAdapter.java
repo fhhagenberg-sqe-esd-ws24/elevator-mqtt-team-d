@@ -17,6 +17,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +26,7 @@ import java.util.logging.Logger;
 public class ElevatorMqttAdapter {
     private final IElevator mPLC;
     private ElevatorControlSystem mControlSystem;
-    private static Mqtt5AsyncClient mMqttClient;
+    private final Mqtt5AsyncClient mMqttClient;
     private boolean mConnectionStatus = false;
     private long mConnectionStatusTimestamp = 0;
 
@@ -58,7 +60,6 @@ public class ElevatorMqttAdapter {
 
             ElevatorMqttAdapter client = new ElevatorMqttAdapter(plc, mqttClient);
             client.run(interval);
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Configuration Error: {}", e.getMessage());
             System.exit(1);
@@ -70,7 +71,7 @@ public class ElevatorMqttAdapter {
         mControlSystem.initializeElevatorsViaPLC();
 
         // check broker connection
-        while(!connectToBroker()) {
+        while (!connectToBroker()) {
             logger.info("Failed to connect to broker. Retrying in 5 seconds...");
             Thread.sleep(5000);
         }
@@ -81,24 +82,32 @@ public class ElevatorMqttAdapter {
         // subscribe to topics
         subscribeToTopics();
 
-        while(!mConnectionStatus) {
+        while (!mConnectionStatus) {
             Thread.sleep(500);
         }
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        // Create a scheduled executor to handle periodic tasks
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+        // Schedule the task to poll the PLC at the specified interval
+        scheduler.scheduleAtFixedRate(new Runnable() {
             boolean initial = true;
+
             @Override
             public void run() {
+                if (Thread.currentThread().isInterrupted()) {
+                    scheduler.shutdown();
+                    return;
+                }
+
                 if (mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 2000)) {
                     pollPLC(initial);
-                    initial = false;
-                }
-                else {
+                    initial = false;  // Set initial to false after the first poll
+                } else {
                     mConnectionStatus = false;
                 }
             }
-        }, 0, interval);
+        }, 0, interval, TimeUnit.MILLISECONDS);
     }
 
     private void pollPLC(boolean initial) {
@@ -239,7 +248,7 @@ public class ElevatorMqttAdapter {
                 logger.info("Reconnected to RMI successfully.");
                 break; // Exit the loop once reconnected
             } catch (Exception e) {
-                logger.warning("Failed to reconnect to RMI!");
+                logger.warning("Failed to reconnect to RMI! ");
                 try {
                     // Wait before retrying
                     Thread.sleep(5000); // 5 seconds

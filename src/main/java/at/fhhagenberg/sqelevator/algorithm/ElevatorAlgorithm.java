@@ -11,12 +11,14 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ElevatorAlgorithm {
-    private static Mqtt5AsyncClient mMqttClient;
+    private final Mqtt5AsyncClient mMqttClient;
 
     private int mNrOfElevators = 0;
     private int mNrOfFloors = 0;
@@ -58,7 +60,7 @@ public class ElevatorAlgorithm {
 
     public void run() throws Exception {
         // check broker connection
-        while(!connectToBroker()) {
+        while (!connectToBroker()) {
             logger.info("Failed to connect to broker. Retrying in 5 seconds...");
             Thread.sleep(5000);
         }
@@ -67,7 +69,7 @@ public class ElevatorAlgorithm {
         subscribeToRetainedTopics();
 
         // wait until static information has been received
-        while(mNrOfElevators == 0 || mNrOfFloors == 0 || mFloorHeight == 0 || mMaxPassengers.size() != mNrOfElevators) {
+        while (mNrOfElevators == 0 || mNrOfFloors == 0 || mFloorHeight == 0 || mMaxPassengers.size() != mNrOfElevators) {
             Thread.sleep(500);
         }
 
@@ -81,14 +83,14 @@ public class ElevatorAlgorithm {
         // set connection status to true to signal availability
         publishConnectionStatus();
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                publishConnectionStatus();
-                resolveElevatorRequests();
-            }
-        }, 0, 100);
+        // Create a scheduled executor to handle periodic tasks
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+        // Schedule the task to publish connection status and resolve elevator requests
+        scheduler.scheduleAtFixedRate(() -> {
+            publishConnectionStatus();
+            resolveElevatorRequests();
+        }, 0, 100, TimeUnit.MILLISECONDS);
     }
 
     private boolean connectToBroker() {
