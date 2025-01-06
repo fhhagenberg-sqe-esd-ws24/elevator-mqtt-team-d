@@ -128,9 +128,8 @@ public class ElevatorMqttAdapter {
     }
 
     private boolean connectToBroker() {
-        CompletableFuture<Mqtt5ConnAck> connAckFuture = mMqttClient.connect();
-
         try {
+            CompletableFuture<Mqtt5ConnAck> connAckFuture = mMqttClient.connect();
             connAckFuture.get(10, TimeUnit.SECONDS);
             if (mMqttClient.getState().isConnected()){
                 return true;
