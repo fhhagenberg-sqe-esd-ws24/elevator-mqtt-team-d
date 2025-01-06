@@ -1,5 +1,6 @@
 package at.fhhagenberg.sqelevator.adapter;
 
+import org.testcontainers.junit.jupiter.Testcontainers;
 import sqelevator.IElevator;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
@@ -25,9 +26,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
+@Testcontainers
 public class ElevatorMqttAdapterTest {
     @Container
-    final static HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
+    static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
     @Mock
     IElevator plc;
@@ -62,7 +64,7 @@ public class ElevatorMqttAdapterTest {
                 .serverPort(hivemqCe.getMqttPort())
                 .buildAsync();
 
-        publisher.connect().get(2, TimeUnit.SECONDS);
+        publisher.connect().get(5, TimeUnit.SECONDS);
         publisher.publishWith()
                 .topic("elevator_control/connection_status").retain(true)
                 .payload(String.valueOf(true).getBytes()).send();

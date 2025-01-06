@@ -6,6 +6,7 @@ import org.junit.jupiter.api.*;
 
 import org.testcontainers.hivemq.HiveMQContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
@@ -17,9 +18,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Testcontainers
 public class ElevatorAlgorithmTest {
     @Container
-    final static HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
+    static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
     private Mqtt5AsyncClient publisher;
     private Mqtt5AsyncClient mqttClient;
@@ -34,9 +36,7 @@ public class ElevatorAlgorithmTest {
     }
 
     @AfterAll
-    public static void tearDownAll() {
-        hivemqCe.stop();
-    }
+    public static void tearDownAll() { hivemqCe.stop(); }
 
     @AfterEach
     void tearDown() {
