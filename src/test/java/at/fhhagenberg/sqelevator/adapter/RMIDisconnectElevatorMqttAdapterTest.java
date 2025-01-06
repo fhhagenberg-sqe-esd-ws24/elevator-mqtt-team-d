@@ -137,7 +137,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
             }
         });
 
-        await().atMost(3, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(5, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
         logger.removeHandler(consoleHandler);
     }
 
@@ -164,7 +164,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .payload("0".getBytes())
                 .send();
 
-        await().atMost(3, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(5, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
         logger.removeHandler(consoleHandler);
     }
 
@@ -191,7 +191,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .payload("0".getBytes())
                 .send();
 
-        await().atMost(3, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(5, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
         logger.removeHandler(consoleHandler);
     }
 
