@@ -236,7 +236,7 @@ public class ElevatorMqttAdapter {
                 mControlSystem.initializeElevatorsViaPLC();
                 publishRetainedMessages();
                 logger.info("Reconnected to RMI successfully.");
-                return; // Exit the loop once reconnected
+                break; // Exit the loop once reconnected
             } catch (Exception e) {
                 logger.warning("Failed to reconnect to RMI! ");
                 try {
@@ -245,7 +245,7 @@ public class ElevatorMqttAdapter {
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                     logger.severe("Reconnection wait interrupted.");
-                    return; // Exit loop on interruption
+                    break; // Exit loop on interruption
                 }
             }
         }
