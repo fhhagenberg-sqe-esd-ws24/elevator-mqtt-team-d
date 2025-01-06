@@ -106,9 +106,9 @@ class FaultyBrokerElevatorMqttAdapterTest {
         }
 
         @Override
-        public void publish(java.util.logging.LogRecord record) {
+        public void publish(java.util.logging.LogRecord logRecord) {
             try {
-                byteArrayOutputStream.write(getFormatter().format(record).getBytes());
+                byteArrayOutputStream.write(getFormatter().format(logRecord).getBytes());
             } catch (IOException e) {
                 // no-op
             }

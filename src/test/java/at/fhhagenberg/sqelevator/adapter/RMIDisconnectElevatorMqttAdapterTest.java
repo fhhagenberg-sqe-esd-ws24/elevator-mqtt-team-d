@@ -46,9 +46,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     }
 
     @AfterAll
-    public static void tearDownAll() {
-        hivemqCe.stop();
-    }
+    public static void tearDownAll() { hivemqCe.stop(); }
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -66,7 +64,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .serverPort(hivemqCe.getMqttPort())
                 .buildAsync();
 
-        publisher.connect().get(2, TimeUnit.SECONDS);
+        publisher.connect().get(5, TimeUnit.SECONDS);
         publisher.publishWith()
                 .topic("elevator_control/connection_status").retain(true)
                 .payload(String.valueOf(true).getBytes()).send();
@@ -206,9 +204,9 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         }
 
         @Override
-        public void publish(java.util.logging.LogRecord record) {
+        public void publish(java.util.logging.LogRecord logRecord) {
             try {
-                byteArrayOutputStream.write(getFormatter().format(record).getBytes());
+                byteArrayOutputStream.write(getFormatter().format(logRecord).getBytes());
             } catch (IOException e) {
                 // no-op
             }
