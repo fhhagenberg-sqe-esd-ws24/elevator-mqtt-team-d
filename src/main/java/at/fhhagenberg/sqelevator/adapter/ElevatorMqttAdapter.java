@@ -18,6 +18,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ElevatorMqttAdapter {
@@ -59,7 +60,7 @@ public class ElevatorMqttAdapter {
             client.run(interval);
 
         } catch (Exception e) {
-            logger.severe("Configuration Error: " + e.getMessage());
+            logger.log(Level.SEVERE, "Configuration Error: {}", e.getMessage());
             System.exit(1);
         }
     }
@@ -182,14 +183,14 @@ public class ElevatorMqttAdapter {
                 mConnectionStatusTimestamp = System.currentTimeMillis();
             }
             else {
-                logger.warning("Unknown subtopic in subscribeToTopics: " + topic);
+                logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
             }
 
             return;
         }
 
         if(parts.length != 3) {
-            logger.warning("Invalid topic: " + topic);
+            logger.log(Level.WARNING, "Invalid topic: {}", topic);
             return;
         }
 
@@ -205,7 +206,7 @@ public class ElevatorMqttAdapter {
                     mPLC.setCommittedDirection(elevatorNumber, Integer.parseInt(new String(publish.getPayloadAsBytes())));
                     break;
                 default:
-                    logger.warning("Unknown subtopic in subscribeToTopics: " + topic);
+                    logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
                     break;
             }
         } catch (RemoteException e) {
@@ -224,7 +225,7 @@ public class ElevatorMqttAdapter {
             plcUrl = properties.getProperty("plc.url");
         }
         catch (IOException e) {
-            logger.severe("Could not load elevator.properties: " + e.getMessage());
+            logger.log(Level.SEVERE, "Could not load elevator.properties: {}", e.getMessage());
             System.exit(1);
         }
 

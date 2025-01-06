@@ -2,6 +2,7 @@ package at.fhhagenberg.sqelevator.algorithm;
 
 import at.fhhagenberg.sqelevator.Elevator;
 import at.fhhagenberg.sqelevator.Floor;
+import at.fhhagenberg.sqelevator.adapter.ElevatorMqttAdapter;
 import sqelevator.IElevator;
 import at.fhhagenberg.sqelevator.MqttTopics;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
@@ -12,6 +13,8 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ElevatorAlgorithm {
     private static Mqtt5AsyncClient mMqttClient;
@@ -23,6 +26,8 @@ public class ElevatorAlgorithm {
 
     private ElevatorState mElevatorState;
     private final TreeSet<Integer> mFloorRequestsToBeServiced = new TreeSet<>();
+
+    private static final Logger logger = Logger.getLogger(ElevatorAlgorithm.class.getName());
 
     public ElevatorAlgorithm(Mqtt5AsyncClient mqttClient) {
         mMqttClient = mqttClient;
@@ -47,7 +52,7 @@ public class ElevatorAlgorithm {
             algorithm.run();
         }
         catch (Exception e) {
-            System.err.println("Configuration Error: " + e.getMessage());
+            logger.log(Level.SEVERE, "Configuration Error: {}", e.getMessage());
             System.exit(1);
         }
     }
@@ -55,7 +60,7 @@ public class ElevatorAlgorithm {
     public void run() throws Exception {
         // check broker connection
         while(!connectToBroker()) {
-            System.out.println("Failed to connect to broker. Retrying in 5 seconds...");
+            logger.info("Failed to connect to broker. Retrying in 5 seconds...");
             Thread.sleep(5000);
         }
 
@@ -142,7 +147,7 @@ public class ElevatorAlgorithm {
                         mNrOfFloors = Integer.parseInt(new String(publish.getPayloadAsBytes()));
                 case MqttTopics.FLOOR_HEIGHT_SUBTOPIC ->
                         mFloorHeight = Integer.parseInt(new String(publish.getPayloadAsBytes()));
-                default -> System.out.println("Unknown subtopic in subscribeToTopics: " + topic);
+                default -> logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
             }
         }
         else if (parts.length == 3) {
@@ -150,7 +155,7 @@ public class ElevatorAlgorithm {
                 mMaxPassengers.put(Integer.parseInt(parts[1]), Integer.parseInt(new String(publish.getPayloadAsBytes())));
             }
             else {
-                System.out.println("Unknown subtopic in subscribeToTopics: " + topic);
+                logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
             }
         }
     }
@@ -198,7 +203,7 @@ public class ElevatorAlgorithm {
 
                     case MqttTopics.CAPACITY_SUBTOPIC -> {}
 
-                    default -> System.out.println("Unknown elevator subtopic: " + parts[2]);
+                    default -> logger.log(Level.WARNING, "Unknown elevator subtopic: {}", parts[2]);
                 }
             }
 
@@ -211,11 +216,11 @@ public class ElevatorAlgorithm {
                     case MqttTopics.BUTTON_DOWN_SUBTOPIC ->
                         mElevatorState.getFloors()[floorNumber].setButtonDownPressed(Boolean.parseBoolean(new String(publish.getPayloadAsBytes())));
 
-                    default -> System.out.println("Unknown floor subtopic: " + parts[2]);
+                    default -> logger.log(Level.WARNING, "Unknown floor subtopic: {}", parts[2]);
                 }
             }
 
-            default -> System.out.println("Unknown topic in mqttCallback: " + topic);
+            default -> logger.log(Level.WARNING, "Unknown topic in mqttCallback: {}", topic);
         }
     }
 
@@ -271,16 +276,16 @@ public class ElevatorAlgorithm {
         int requestedFloor = findNextRequestedFloor(elevator, floors, true);
 
         if (requestedFloor > elevator.getCurrentFloor()) {
-            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
+            sendElevatorTargetFloor(elevatorNum, requestedFloor);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
         } else {
             requestedFloor = findNextRequestedFloor(elevator, floors, false);
 
             if(requestedFloor < elevator.getCurrentFloor()) {
-                sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
-                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
+                sendElevatorTargetFloor(elevatorNum, requestedFloor);
+                sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
             } else {
-                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+                sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
             }
         }
     }
@@ -289,16 +294,16 @@ public class ElevatorAlgorithm {
         int requestedFloor = findNextRequestedFloor(elevator, floors, false);
 
         if (requestedFloor < elevator.getCurrentFloor()) {
-            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
+            sendElevatorTargetFloor(elevatorNum, requestedFloor);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
         } else {
             requestedFloor = findNextRequestedFloor(elevator, floors, true);
 
             if(requestedFloor > elevator.getCurrentFloor()) {
-                sendElevatorTargetFloor(elevator, elevatorNum, requestedFloor);
-                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
+                sendElevatorTargetFloor(elevatorNum, requestedFloor);
+                sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
             } else {
-                sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+                sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
             }
         }
     }
@@ -308,7 +313,7 @@ public class ElevatorAlgorithm {
         int requestedFloorDown = findNextRequestedFloor(elevator, floors, false);
 
         if (requestedFloorUp == elevator.getCurrentFloor() && requestedFloorDown == elevator.getCurrentFloor()) {
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UNCOMMITTED);
             return;
         }
 
@@ -316,23 +321,23 @@ public class ElevatorAlgorithm {
         int distanceToDown = Math.abs(elevator.getCurrentFloor() - requestedFloorDown);
 
         if (distanceToUp == 0) {
-            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorDown);
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
+            sendElevatorTargetFloor(elevatorNum, requestedFloorDown);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
             return;
         }
         if (distanceToDown == 0) {
-            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorUp);
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
+            sendElevatorTargetFloor(elevatorNum, requestedFloorUp);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
             return;
         }
 
         // Send command to nearest target
         if (distanceToUp <= distanceToDown) {
-            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorUp);
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
+            sendElevatorTargetFloor(elevatorNum, requestedFloorUp);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_UP);
         } else {
-            sendElevatorTargetFloor(elevator, elevatorNum, requestedFloorDown);
-            sendElevatorDirection(elevator, elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
+            sendElevatorTargetFloor(elevatorNum, requestedFloorDown);
+            sendElevatorDirection(elevatorNum, IElevator.ELEVATOR_DIRECTION_DOWN);
         }
     }
 
@@ -378,13 +383,13 @@ public class ElevatorAlgorithm {
         return requestedFloor;
     }
 
-    private void sendElevatorTargetFloor(Elevator elevator, int elevatorNumber, int targetFloor) {
+    private void sendElevatorTargetFloor(int elevatorNumber, int targetFloor) {
         mMqttClient.publishWith()
                 .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/" + elevatorNumber + MqttTopics.TARGET_FLOOR_SUBTOPIC)
                 .payload(String.valueOf(targetFloor).getBytes()).send();
     }
 
-    private void sendElevatorDirection(Elevator elevator, int elevatorNumber, int direction) {
+    private void sendElevatorDirection(int elevatorNumber, int direction) {
         mMqttClient.publishWith()
                 .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/" + elevatorNumber + MqttTopics.DIRECTION_SUBTOPIC)
                 .payload(String.valueOf(direction).getBytes()).send();
