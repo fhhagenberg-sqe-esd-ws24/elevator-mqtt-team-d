@@ -2,7 +2,6 @@ package at.fhhagenberg.sqelevator.algorithm;
 
 import at.fhhagenberg.sqelevator.Elevator;
 import at.fhhagenberg.sqelevator.Floor;
-import at.fhhagenberg.sqelevator.adapter.ElevatorMqttAdapter;
 import sqelevator.IElevator;
 import at.fhhagenberg.sqelevator.MqttTopics;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
