@@ -987,7 +987,7 @@ public class ElevatorAlgorithmTest {
                 "elevator_control/0/target_floor", "4"
         ));
         final AtomicReference<Map<String, String>> receivedMessages = new AtomicReference<>(new ConcurrentHashMap<>());
-        final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(1));
+        final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(2));
 
         Mqtt5AsyncClient subscriber = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
@@ -1078,6 +1078,95 @@ public class ElevatorAlgorithmTest {
         publisher.publishWith()
                 .topic("elevator/0/door_status")
                 .payload("1".getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        subscriber.disconnect();
+    }
+
+    @Test
+    public void testUpFloorUpRequestedFloorNotServiced() throws Exception {
+        assertTrue(connected);
+
+        final AtomicReference<Map<String, String>> expectedMessages = new AtomicReference<>(Map.of(
+                "elevator_control/0/direction", "0",
+                "elevator_control/0/target_floor", "4"
+        ));
+        final AtomicReference<Map<String, String>> receivedMessages = new AtomicReference<>(new ConcurrentHashMap<>());
+        final AtomicReference<CountDownLatch> latch = new AtomicReference<>(new CountDownLatch(2));
+
+        Mqtt5AsyncClient subscriber = Mqtt5Client.builder()
+                .identifier(UUID.randomUUID().toString())
+                .serverHost(hivemqCe.getHost())
+                .serverPort(hivemqCe.getMqttPort())
+                .buildAsync();
+
+        subscriber.connect();
+        subscriber.subscribeWith()
+                .addSubscription()
+                .topicFilter("elevator_control/+/direction")
+                .applySubscription()
+                .addSubscription()
+                .topicFilter("elevator_control/+/target_floor")
+                .applySubscription()
+                .callback(message -> {
+                    String payload = new String(message.getPayloadAsBytes());
+                    String topic = message.getTopic().toString();
+                    if (expectedMessages.get().containsKey(topic) && payload.equals(expectedMessages.get().get(topic)) && !receivedMessages.get().containsKey(topic)) {
+                        receivedMessages.get().put(topic, payload);
+                        latch.get().countDown();
+                    }
+                })
+                .send();
+
+        publisher.publishWith()
+                .topic("elevator/0/door_status")
+                .payload("2".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/direction")
+                .payload("0".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/target_floor")
+                .payload("4".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("floor/4/button_down")
+                .payload(String.valueOf(true).getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/current_floor")
+                .payload("0".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/floor_serviced/2")
+                .payload(String.valueOf(false).getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("elevator/0/floor_serviced/0")
+                .payload(String.valueOf(false).getBytes())
+                .send();
+
+        latch.get().await();
+        assertEquals(expectedMessages.get(), receivedMessages.get()); // Compare contents
+
+        expectedMessages.set(Map.of(
+                "elevator_control/0/direction", "0",
+                "elevator_control/0/target_floor", "4"
+        ));
+        receivedMessages.set(new ConcurrentHashMap<>());
+        latch.set(new CountDownLatch(2));
+
+        publisher.publishWith()
+                .topic("elevator/0/current_floor")
+                .payload("1".getBytes())
+                .send();
+        publisher.publishWith()
+                .topic("floor/2/button_up/")
+                .payload(String.valueOf(true).getBytes())
                 .send();
 
         latch.get().await();

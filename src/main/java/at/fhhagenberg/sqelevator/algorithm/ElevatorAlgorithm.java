@@ -88,9 +88,8 @@ public class ElevatorAlgorithm {
     }
 
     private boolean connectToBroker() {
-        CompletableFuture<Mqtt5ConnAck> connAckFuture = mMqttClient.connect();
-
         try {
+            CompletableFuture<Mqtt5ConnAck> connAckFuture = mMqttClient.connect();
             connAckFuture.get(10, TimeUnit.SECONDS);
             if (mMqttClient.getState().isConnected()){
                 return true;
@@ -101,7 +100,6 @@ public class ElevatorAlgorithm {
         } catch (Exception e) {
             return false;
         }
-
 
         return false;
     }
