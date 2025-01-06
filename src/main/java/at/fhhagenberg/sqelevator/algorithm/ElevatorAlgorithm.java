@@ -83,14 +83,14 @@ public class ElevatorAlgorithm {
         // set connection status to true to signal availability
         publishConnectionStatus();
 
-        // Create a scheduled executor to handle periodic tasks
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-        // Schedule the task to publish connection status and resolve elevator requests
-        scheduler.scheduleAtFixedRate(() -> {
-            publishConnectionStatus();
-            resolveElevatorRequests();
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                publishConnectionStatus();
+                resolveElevatorRequests();
+            }
+        }, 0, 100);
     }
 
     private boolean connectToBroker() {

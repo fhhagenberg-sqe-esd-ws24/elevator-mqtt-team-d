@@ -13,10 +13,10 @@ import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,28 +84,20 @@ public class ElevatorMqttAdapter {
             Thread.sleep(500);
         }
 
-        // Create a scheduled executor to handle periodic tasks
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-        // Schedule the task to poll the PLC at the specified interval
-        scheduler.scheduleAtFixedRate(new Runnable() {
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
             boolean initial = true;
-
             @Override
             public void run() {
-                if (Thread.currentThread().isInterrupted()) {
-                    scheduler.shutdown();
-                    return;
-                }
-
-                if (mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 2000)) {
+                if (mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 500)) {
                     pollPLC(initial);
-                    initial = false;  // Set initial to false after the first poll
-                } else {
+                    initial = false;
+                }
+                else {
                     mConnectionStatus = false;
                 }
             }
-        }, 0, interval, TimeUnit.MILLISECONDS);
+        }, 0, interval);
     }
 
     private void pollPLC(boolean initial) {
@@ -244,7 +236,7 @@ public class ElevatorMqttAdapter {
                 mControlSystem.initializeElevatorsViaPLC();
                 publishRetainedMessages();
                 logger.info("Reconnected to RMI successfully.");
-                break; // Exit the loop once reconnected
+                return; // Exit the loop once reconnected
             } catch (Exception e) {
                 logger.warning("Failed to reconnect to RMI! ");
                 try {
@@ -253,7 +245,7 @@ public class ElevatorMqttAdapter {
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                     logger.severe("Reconnection wait interrupted.");
-                    break; // Exit loop on interruption
+                    return; // Exit loop on interruption
                 }
             }
         }
