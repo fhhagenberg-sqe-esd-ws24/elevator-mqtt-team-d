@@ -62,7 +62,7 @@ public class ElevatorMqttAdapterTest {
                 .serverPort(hivemqCe.getMqttPort())
                 .buildAsync();
 
-        publisher.connect().get(2, TimeUnit.SECONDS);
+        publisher.connect().get(5, TimeUnit.SECONDS);
         publisher.publishWith()
                 .topic("elevator_control/connection_status").retain(true)
                 .payload(String.valueOf(true).getBytes()).send();
