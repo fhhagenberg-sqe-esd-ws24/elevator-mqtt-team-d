@@ -89,7 +89,7 @@ public class ElevatorMqttAdapter {
             boolean initial = true;
             @Override
             public void run() {
-                if (mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 500)) {
+                if (mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 2000)) {
                     pollPLC(initial);
                     initial = false;
                 }
