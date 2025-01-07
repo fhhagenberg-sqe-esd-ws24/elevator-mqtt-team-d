@@ -321,7 +321,7 @@ public class ElevatorMqttAdapter {
                 logger.info("Reconnected to RMI successfully.");
                 shouldReconnect = false; // Exit the loop once reconnected
             } catch (Exception e) {
-                logger.warning("Failed to reconnect to RMI! ");
+                logger.warning("Failed to reconnect to RMI!");
                 try {
                     // Wait before retrying
                     Thread.sleep(5000);

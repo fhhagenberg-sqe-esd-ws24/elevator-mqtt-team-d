@@ -50,13 +50,27 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
     /**
+     * Set up the test environment before all tests
+     */
+    @BeforeAll
+    public static void setUpAll() {
+        hivemqCe.start();
+    }
+
+    /**
+     * Tear down the test environment after all tests
+     */
+    @AfterAll
+    public static void tearDownAll() {
+        hivemqCe.stop();
+    }
+
+    /**
      * Set up the test environment before each test
      * @throws Exception if adapter encounters an error
      */
     @BeforeEach
     public void setUp() throws Exception {
-        hivemqCe.start();
-
         Mqtt5AsyncClient mqttClient = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost(hivemqCe.getHost())
@@ -110,12 +124,6 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         client = new ElevatorMqttAdapter(plc, mqttClient);
     }
 
-    /** Tear down the test environment after each test */
-    @AfterEach
-    public void tearDown() {
-        hivemqCe.stop();
-    }
-
     /**
      * Test case for remote exception on get elevator button
      * @throws Exception if adapter encounters an error
@@ -130,7 +138,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         logger.addHandler(consoleHandler);
 
         client.run(250);
-        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
     }
 
@@ -153,7 +161,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .topic("elevator_control/0/direction").retain(true)
                 .payload("0".getBytes())
                 .send();
-        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
     }
 
@@ -176,7 +184,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .topic("elevator_control/0/target_floor").retain(true)
                 .payload("0".getBytes())
                 .send();
-        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
     }
 
