@@ -29,7 +29,7 @@ public class ElevatorAlgorithm {
     /** The height of a floor */
     private int mFloorHeight = 0;
     /** The maximum number of passengers per elevator */
-    private final Map<Integer, Integer> mMaxPassengers = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> mMaxPassengers = new HashMap<>();
 
     /** The elevator state */
     private ElevatorState mElevatorState;
