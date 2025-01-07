@@ -266,7 +266,7 @@ public class ElevatorMqttAdapter {
                 logger.warning("Failed to reconnect to RMI! ");
                 try {
                     // Wait before retrying
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                     logger.severe("Reconnection wait interrupted.");

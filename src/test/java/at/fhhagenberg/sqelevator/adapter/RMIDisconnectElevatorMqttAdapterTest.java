@@ -40,8 +40,6 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     private Mqtt5AsyncClient mqttClient;
     ElevatorMqttAdapter client;
 
-    private Thread testThread;
-
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
     @BeforeAll
@@ -105,14 +103,6 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         client = new ElevatorMqttAdapter(plc, mqttClient);
     }
 
-    @AfterEach
-    void tearDown() throws Exception {
-        if (testThread != null) {
-            testThread.interrupt();
-            testThread.join();
-        }
-    }
-
     @Test
     public void testRemoteExceptionOnUpdateECS() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenThrow(new RemoteException("RemoteException thrown!"));
@@ -122,19 +112,9 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        testThread = new Thread(() -> {
-            try {
-                client.run(250);
-            } catch (Exception e) {
-                // Suppress interruptions
-            }
-        });
-        testThread.start();
+        client.run(250);
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
         logger.removeHandler(consoleHandler);
-
-        testThread.interrupt();
-        testThread.join();
     }
 
     @Test
