@@ -323,6 +323,10 @@ public class ElevatorAlgorithm {
             case IElevator.ELEVATOR_DIRECTION_UNCOMMITTED:
                 handleUncommittedRequest(elevator, elevatorNum, floors);
                 break;
+
+            default:
+                logger.log(Level.WARNING, "Invalid elevator direction: {0}", elevator.getDirection());
+                break;
         }
     }
 
