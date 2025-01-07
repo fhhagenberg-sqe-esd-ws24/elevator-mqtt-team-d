@@ -300,7 +300,9 @@ public class ElevatorMqttAdapter {
             System.exit(1);
         }
 
-        while (true) {
+        boolean shouldReconnect = true;
+
+        while (shouldReconnect) {
             try {
                 // Attempt to reconnect to RMI
                 mPLC = (IElevator) Naming.lookup(plcUrl);
@@ -311,7 +313,7 @@ public class ElevatorMqttAdapter {
                 subscribeToTopics();
                 pollPLC(true);
                 logger.info("Reconnected to RMI successfully.");
-                break; // Exit the loop once reconnected
+                shouldReconnect = false; // Exit the loop once reconnected
             } catch (Exception e) {
                 logger.warning("Failed to reconnect to RMI! ");
                 try {
@@ -320,7 +322,7 @@ public class ElevatorMqttAdapter {
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                     logger.severe("Reconnection wait interrupted.");
-                    break; // Exit loop on interruption
+                    shouldReconnect = false; // Exit loop on interruption
                 }
             }
         }
