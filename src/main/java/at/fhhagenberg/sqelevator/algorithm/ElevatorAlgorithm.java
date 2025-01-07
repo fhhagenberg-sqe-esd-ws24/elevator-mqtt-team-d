@@ -428,7 +428,19 @@ public class ElevatorAlgorithm {
      * @return The next requested floor number
      */
     private int findNextRequestedFloor(Elevator elevator, Floor[] floors, boolean movingUp) {
+        int requestedFloor = findNextRequestedFloorSameDirection(elevator, floors, movingUp);
+
+        // if no new requested floor found, also check direction switch
+        if (requestedFloor == elevator.getCurrentFloor()) {
+            requestedFloor = findNextRequestedFloorInverseDirection(elevator, floors, movingUp);
+        }
+
+        return requestedFloor;
+    }
+
+    private int findNextRequestedFloorSameDirection(Elevator elevator, Floor[] floors, boolean movingUp) {
         int requestedFloor = elevator.getCurrentFloor();
+        boolean floorFound = false;
         for (int i = (movingUp ? requestedFloor + 1 : requestedFloor - 1);
              movingUp ? i < floors.length : i >= 0;
              i = (movingUp ? i + 1 : i - 1)) {
@@ -436,7 +448,7 @@ public class ElevatorAlgorithm {
             // Check requested floors from within elevator
             if (elevator.getElevatorButton(i) && elevator.getFloorService(i)) {
                 requestedFloor = i;
-                break;
+                floorFound = true;
             }
 
             // Check elevator requests from floor
@@ -445,15 +457,13 @@ public class ElevatorAlgorithm {
                     !mFloorRequestsToBeServiced.contains(i)) {
                 requestedFloor = i;
                 mFloorRequestsToBeServiced.add(i);
+                floorFound = true;
+            }
+
+            if (floorFound) {
                 break;
             }
         }
-
-        // if no new requested floor found, also check direction switch
-        if (requestedFloor == elevator.getCurrentFloor()) {
-            requestedFloor = findNextRequestedFloorInverseDirection(elevator, floors, movingUp);
-        }
-
         return requestedFloor;
     }
 
