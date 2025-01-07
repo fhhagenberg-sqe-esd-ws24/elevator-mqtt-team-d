@@ -53,7 +53,7 @@ public class ElevatorAlgorithm {
             algorithm.run();
         }
         catch (Exception e) {
-            logger.log(Level.SEVERE, "Configuration Error: {}", e.getMessage());
+            logger.log(Level.SEVERE, "Configuration Error: {0}", e.getMessage());
             System.exit(1);
         }
     }
@@ -148,7 +148,7 @@ public class ElevatorAlgorithm {
                         mNrOfFloors = Integer.parseInt(new String(publish.getPayloadAsBytes()));
                 case MqttTopics.FLOOR_HEIGHT_SUBTOPIC ->
                         mFloorHeight = Integer.parseInt(new String(publish.getPayloadAsBytes()));
-                default -> logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
+                default -> logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {0}", topic);
             }
         }
         else if (parts.length == 3) {
@@ -156,7 +156,7 @@ public class ElevatorAlgorithm {
                 mMaxPassengers.put(Integer.parseInt(parts[1]), Integer.parseInt(new String(publish.getPayloadAsBytes())));
             }
             else {
-                logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
+                logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {0}", topic);
             }
         }
     }
@@ -202,9 +202,11 @@ public class ElevatorAlgorithm {
                         }
                     }
 
-                    case MqttTopics.CAPACITY_SUBTOPIC -> {}
+                    case MqttTopics.CAPACITY_SUBTOPIC -> {
+                        logger.info("Capacity received again -> should not change.");
+                    }
 
-                    default -> logger.log(Level.WARNING, "Unknown elevator subtopic: {}", parts[2]);
+                    default -> logger.log(Level.WARNING, "Unknown elevator subtopic: {0}", parts[2]);
                 }
             }
 
@@ -217,11 +219,11 @@ public class ElevatorAlgorithm {
                     case MqttTopics.BUTTON_DOWN_SUBTOPIC ->
                         mElevatorState.getFloors()[floorNumber].setButtonDownPressed(Boolean.parseBoolean(new String(publish.getPayloadAsBytes())));
 
-                    default -> logger.log(Level.WARNING, "Unknown floor subtopic: {}", parts[2]);
+                    default -> logger.log(Level.WARNING, "Unknown floor subtopic: {0}", parts[2]);
                 }
             }
 
-            default -> logger.log(Level.WARNING, "Unknown topic in mqttCallback: {}", topic);
+            default -> logger.log(Level.WARNING, "Unknown topic in mqttCallback: {0}", topic);
         }
     }
 

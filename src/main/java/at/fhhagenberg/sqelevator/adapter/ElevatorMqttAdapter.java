@@ -22,10 +22,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ElevatorMqttAdapter {
-    private final IElevator mPLC;
+    private IElevator mPLC;
     private ElevatorControlSystem mControlSystem;
     private final Mqtt5AsyncClient mMqttClient;
     private boolean mConnectionStatus = false;
+    private boolean mRmiIsConnected = false;
     private long mConnectionStatusTimestamp = 0;
 
     private static final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
@@ -59,12 +60,15 @@ public class ElevatorMqttAdapter {
             ElevatorMqttAdapter client = new ElevatorMqttAdapter(plc, mqttClient);
             client.run(interval);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Configuration Error: {}", e.getMessage());
+            logger.log(Level.SEVERE, "Configuration Error: {0}", e.getMessage());
             System.exit(1);
         }
     }
 
     public void run(int interval) throws Exception {
+        // if run method is called -> RMI connected
+        mRmiIsConnected = true;
+
         // Initialize elevators and floors
         mControlSystem.initializeElevatorsViaPLC();
 
@@ -89,7 +93,7 @@ public class ElevatorMqttAdapter {
             boolean initial = true;
             @Override
             public void run() {
-                if (mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 500)) {
+                if (mRmiIsConnected && mConnectionStatus && (System.currentTimeMillis() - mConnectionStatusTimestamp < 500)) {
                     pollPLC(initial);
                     initial = false;
                 }
@@ -126,7 +130,12 @@ public class ElevatorMqttAdapter {
             }
         }
         catch (Exception e) {
-            reconnectToRMI();
+            // check if mqtt callback already caught rmi exception
+            // prevent duplicate reconnect
+            if (mRmiIsConnected) {
+                mRmiIsConnected = false;
+                reconnectToRMI();
+            }
         }
     }
 
@@ -172,6 +181,12 @@ public class ElevatorMqttAdapter {
                 .send();
     }
 
+    private void unsubscribeFromTopics() {
+        mMqttClient.unsubscribeWith()
+                .topicFilter(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/#")
+                .send();
+    }
+
     private void mqttCallback(Mqtt5Publish publish) {
         String topic = publish.getTopic().toString();
         String[] parts = topic.split("/");
@@ -182,14 +197,14 @@ public class ElevatorMqttAdapter {
                 mConnectionStatusTimestamp = System.currentTimeMillis();
             }
             else {
-                logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
+                logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {0}", topic);
             }
 
             return;
         }
 
         if(parts.length != 3) {
-            logger.log(Level.WARNING, "Invalid topic: {}", topic);
+            logger.log(Level.WARNING, "Invalid topic: {0}", topic);
             return;
         }
 
@@ -205,15 +220,22 @@ public class ElevatorMqttAdapter {
                     mPLC.setCommittedDirection(elevatorNumber, Integer.parseInt(new String(publish.getPayloadAsBytes())));
                     break;
                 default:
-                    logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {}", topic);
+                    logger.log(Level.WARNING, "Unknown subtopic in subscribeToTopics: {0}", topic);
                     break;
             }
         } catch (RemoteException e) {
-            reconnectToRMI();
+            // check if timer task already caught remote exception
+            // prevent duplicate reconnect
+            if (mRmiIsConnected) {
+                mRmiIsConnected = false;
+                reconnectToRMI();
+            }
         }
     }
 
     private void reconnectToRMI() {
+        // unsubscribe from incoming mqtt messages
+        unsubscribeFromTopics();
         String plcUrl = "";
         logger.info("Trying to reconnect to RMI...");
         try {
@@ -224,24 +246,27 @@ public class ElevatorMqttAdapter {
             plcUrl = properties.getProperty("plc.url");
         }
         catch (IOException e) {
-            logger.log(Level.SEVERE, "Could not load elevator.properties: {}", e.getMessage());
+            logger.log(Level.SEVERE, "Could not load elevator.properties: {0}", e.getMessage());
             System.exit(1);
         }
 
         while (true) {
             try {
                 // Attempt to reconnect to RMI
-                IElevator plc = (IElevator) Naming.lookup(plcUrl);
-                mControlSystem = new ElevatorControlSystem(plc);
+                mPLC = (IElevator) Naming.lookup(plcUrl);
+                mRmiIsConnected = true;
+                mControlSystem = new ElevatorControlSystem(mPLC);
                 mControlSystem.initializeElevatorsViaPLC();
                 publishRetainedMessages();
+                subscribeToTopics();
+                pollPLC(true);
                 logger.info("Reconnected to RMI successfully.");
                 break; // Exit the loop once reconnected
             } catch (Exception e) {
                 logger.warning("Failed to reconnect to RMI! ");
                 try {
                     // Wait before retrying
-                    Thread.sleep(5000); // 5 seconds
+                    Thread.sleep(1000);
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                     logger.severe("Reconnection wait interrupted.");
