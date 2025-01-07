@@ -203,7 +203,7 @@ public class ElevatorAlgorithm {
                     }
 
                     case MqttTopics.CAPACITY_SUBTOPIC -> {
-                        logger.info("Capacity received again -> should not change.");
+                        // no-op
                     }
 
                     default -> logger.log(Level.WARNING, "Unknown elevator subtopic: {0}", parts[2]);
