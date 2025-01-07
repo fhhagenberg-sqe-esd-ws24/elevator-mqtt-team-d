@@ -46,17 +46,17 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     /** The adapter to be tested */
     ElevatorMqttAdapter client;
 
+    /** The logger for the test */
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
-    @BeforeAll
-    public static void setUpAll() { hivemqCe.start(); }
-
-    @AfterAll
-    public static void tearDownAll() { hivemqCe.stop(); }
-
+    /**
+     * Set up the test environment before each test
+     * @throws Exception if adapter encounters an error
+     */
     @BeforeEach
     public void setUp() throws Exception {
-        /** The MQTT client for the adapter */
+        hivemqCe.start();
+
         Mqtt5AsyncClient mqttClient = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost(hivemqCe.getHost())
@@ -110,6 +110,16 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         client = new ElevatorMqttAdapter(plc, mqttClient);
     }
 
+    /** Tear down the test environment after each test */
+    @AfterEach
+    public void tearDown() {
+        hivemqCe.stop();
+    }
+
+    /**
+     * Test case for remote exception on get elevator button
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRemoteExceptionOnUpdateECS() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenThrow(new RemoteException("RemoteException thrown!"));
@@ -124,6 +134,10 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         logger.removeHandler(consoleHandler);
     }
 
+    /**
+     * Test case for remote exception on set direction
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRemoteExceptionOnSetDirection() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenReturn(false);
@@ -143,6 +157,10 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         logger.removeHandler(consoleHandler);
     }
 
+    /**
+     * Test case for remote exception on set target
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRemoteExceptionOnSetTarget() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenReturn(false);
@@ -162,13 +180,24 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         logger.removeHandler(consoleHandler);
     }
 
+    /** Console handler for capturing logs */
     private static class CaptureLoggingConsoleHandler extends ConsoleHandler {
+        /** The byte array output stream */
         private final ByteArrayOutputStream byteArrayOutputStream;
 
+        /**
+         * Constructor for the console handler
+         * @param byteArrayOutputStream the byte array output stream
+         */
         public CaptureLoggingConsoleHandler(ByteArrayOutputStream byteArrayOutputStream) {
             this.byteArrayOutputStream = byteArrayOutputStream;
         }
 
+        /**
+         * Publish the log record
+         * @param logRecord  description of the log event. A null record is
+         *                 silently ignored and is not published
+         */
         @Override
         public void publish(java.util.logging.LogRecord logRecord) {
             try {
@@ -178,11 +207,18 @@ public class RMIDisconnectElevatorMqttAdapterTest {
             }
         }
 
+        /**
+         * Flush the console handler
+         */
         @Override
         public void flush() {
             // no-op
         }
 
+        /**
+         * Close the console handler
+         * @throws SecurityException if closing the handler fails (in this case never)
+         */
         @Override
         public void close() throws SecurityException {
             // no-op
