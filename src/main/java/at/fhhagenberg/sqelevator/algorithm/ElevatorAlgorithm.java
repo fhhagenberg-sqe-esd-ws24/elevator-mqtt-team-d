@@ -69,6 +69,10 @@ public class ElevatorAlgorithm {
             ElevatorAlgorithm algorithm = new ElevatorAlgorithm(mqttClient);
             algorithm.run();
         }
+        catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Thread interrupted: {0}", e.getMessage());
+            Thread.currentThread().interrupt();
+        }
         catch (Exception e) {
             logger.log(Level.SEVERE, "Configuration Error: {0}", e.getMessage());
             System.exit(1);

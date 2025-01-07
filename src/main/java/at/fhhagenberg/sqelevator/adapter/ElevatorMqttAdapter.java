@@ -79,6 +79,13 @@ public class ElevatorMqttAdapter {
 
             ElevatorMqttAdapter client = new ElevatorMqttAdapter(plc, mqttClient);
             client.run(interval);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.log(Level.SEVERE, "Interrupted: {0}", e.getMessage());
+            System.exit(1);
+        } catch (RemoteException e) {
+        logger.log(Level.SEVERE, "RMI Error: {0}", e.getMessage());
+        System.exit(1);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Configuration Error: {0}", e.getMessage());
             System.exit(1);
