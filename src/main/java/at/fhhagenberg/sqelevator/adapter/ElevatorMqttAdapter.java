@@ -21,22 +21,41 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Adapter class for the elevator system that connects to the MQTT broker
+ */
 public class ElevatorMqttAdapter {
+    /** The PLC */
     private IElevator mPLC;
+    /** The control system */
     private ElevatorControlSystem mControlSystem;
+    /** The MQTT client */
     private final Mqtt5AsyncClient mMqttClient;
+    /** The connection status of the algorithm */
     private boolean mConnectionStatus = false;
+    /** The connection status of the RMI */
     private boolean mRmiIsConnected = false;
+    /** The timestamp of the connection status */
     private long mConnectionStatusTimestamp = 0;
 
+    /** The logger */
     private static final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
+    /**
+     * Constructor
+     * @param plc The PLC
+     * @param mqttClient The MQTT client
+     */
     public ElevatorMqttAdapter(IElevator plc, Mqtt5AsyncClient mqttClient) {
         mPLC = plc;
         mControlSystem = new ElevatorControlSystem(plc);
         mMqttClient = mqttClient;
     }
 
+    /**
+     * Main method
+     * @param args The arguments
+     */
     public static void main(String[] args){
         try {
             // Read from property file
@@ -65,6 +84,11 @@ public class ElevatorMqttAdapter {
         }
     }
 
+    /**
+     * Run method
+     * @param interval The polling interval
+     * @throws Exception if run fails
+     */
     public void run(int interval) throws Exception {
         // if run method is called -> RMI connected
         mRmiIsConnected = true;
@@ -104,6 +128,10 @@ public class ElevatorMqttAdapter {
         }, 0, interval);
     }
 
+    /**
+     * Poll the PLC
+     * @param initial If the poll is initial
+     */
     private void pollPLC(boolean initial) {
         try {
             if(initial){
@@ -139,6 +167,10 @@ public class ElevatorMqttAdapter {
         }
     }
 
+    /**
+     * Connect to the mqtt broker
+     * @return True if the connection was successful, false otherwise
+     */
     private boolean connectToBroker() {
         try {
             CompletableFuture<Mqtt5ConnAck> connAckFuture = mMqttClient.connect();
@@ -156,6 +188,9 @@ public class ElevatorMqttAdapter {
         return false;
     }
 
+    /**
+     * Publish retained messages
+     */
     private void publishRetainedMessages() {
         mMqttClient.publishWith()
                 .topic(MqttTopics.INFO_TOPIC + MqttTopics.NUM_OF_ELEVATORS_SUBTOPIC).retain(true)
@@ -174,6 +209,9 @@ public class ElevatorMqttAdapter {
         }
     }
 
+    /**
+     * Subscribe to elevator control topics
+     */
     private void subscribeToTopics() {
         mMqttClient.subscribeWith()
                 .topicFilter(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/#")
@@ -181,12 +219,19 @@ public class ElevatorMqttAdapter {
                 .send();
     }
 
+    /**
+     * Unsubscribe from elevator control topics
+     */
     private void unsubscribeFromTopics() {
         mMqttClient.unsubscribeWith()
                 .topicFilter(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/#")
                 .send();
     }
 
+    /**
+     * Callback for MQTT elevator control messages
+     * @param publish the mqtt message (topic + payload)
+     */
     private void mqttCallback(Mqtt5Publish publish) {
         String topic = publish.getTopic().toString();
         String[] parts = topic.split("/");
@@ -233,6 +278,9 @@ public class ElevatorMqttAdapter {
         }
     }
 
+    /**
+     * Reconnect to RMI
+     */
     private void reconnectToRMI() {
         // unsubscribe from incoming mqtt messages
         unsubscribeFromTopics();

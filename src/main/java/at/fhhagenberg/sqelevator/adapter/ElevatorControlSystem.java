@@ -20,7 +20,7 @@ public class ElevatorControlSystem {
     private Elevator[] mElevators = null;
     /**< The floors. */
     private Floor[] mFloors = null;
-
+    /** The height of a floor. */
     private int mFloorHeight;
 
     /**< The set of topics which need to be updated. */
@@ -84,7 +84,8 @@ public class ElevatorControlSystem {
     }
 
     /**
-     *
+     * Initializes the data via the PLC. Gets called once at startup.
+     * @throws RemoteException if the PLC communication fails.
      */
     public void initialUpdateDataViaPLC() throws RemoteException {
         if (mElevators == null) {

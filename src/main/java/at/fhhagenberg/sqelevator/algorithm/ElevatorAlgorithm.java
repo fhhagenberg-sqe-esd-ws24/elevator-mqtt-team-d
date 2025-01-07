@@ -11,29 +11,45 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Elevator algorithm class
+ */
 public class ElevatorAlgorithm {
+    /** The MQTT client */
     private final Mqtt5AsyncClient mMqttClient;
 
+    /** The number of elevators */
     private int mNrOfElevators = 0;
+    /** The number of floors */
     private int mNrOfFloors = 0;
+    /** The height of a floor */
     private int mFloorHeight = 0;
+    /** The maximum number of passengers per elevator */
     private final Map<Integer, Integer> mMaxPassengers = new HashMap<Integer, Integer>();
 
+    /** The elevator state */
     private ElevatorState mElevatorState;
+    /** The floor requests to be serviced */
     private final TreeSet<Integer> mFloorRequestsToBeServiced = new TreeSet<>();
-
+    /** The logger */
     private static final Logger logger = Logger.getLogger(ElevatorAlgorithm.class.getName());
 
+    /**
+     * Constructor
+     * @param mqttClient The MQTT client
+     */
     public ElevatorAlgorithm(Mqtt5AsyncClient mqttClient) {
         mMqttClient = mqttClient;
     }
 
+    /**
+     * Main method
+     * @param args The arguments
+     */
     public static void main(String[] args) {
         try {
             Properties properties = new Properties();
@@ -58,6 +74,10 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Run the algorithm
+     * @throws Exception if the algorithm fails
+     */
     public void run() throws Exception {
         // check broker connection
         while (!connectToBroker()) {
@@ -93,6 +113,10 @@ public class ElevatorAlgorithm {
         }, 0, 100);
     }
 
+    /**
+     * Connect to the broker
+     * @return true if connection was successful, false otherwise
+     */
     private boolean connectToBroker() {
         try {
             CompletableFuture<Mqtt5ConnAck> connAckFuture = mMqttClient.connect();
@@ -110,6 +134,9 @@ public class ElevatorAlgorithm {
         return false;
     }
 
+    /**
+     * Subscribe to retained topics (info)
+     */
     private void subscribeToRetainedTopics() {
         // Subscribe to info topic
         mMqttClient.subscribeWith()
@@ -123,6 +150,9 @@ public class ElevatorAlgorithm {
                 .send();
     }
 
+    /**
+     * Subscribe to elevator and floor topics
+     */
     private void subscribeToTopics() {
         // Subscribe to elevator and floor topics
         mMqttClient.subscribeWith()
@@ -136,6 +166,10 @@ public class ElevatorAlgorithm {
                 .send();
     }
 
+    /**
+     * Callback for retained messages
+     * @param publish The publishing message (topic + payload)
+     */
     private void retainedMessagesMqttCallback(Mqtt5Publish publish) {
         String topic = publish.getTopic().toString();
         String[] parts = topic.split("/");
@@ -161,6 +195,10 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Callback for messages (elevator and floor)
+     * @param publish The publishing message (topic + payload)
+     */
     private void mqttCallback(Mqtt5Publish publish) {
         String topic = publish.getTopic().toString();
         String[] parts = topic.split("/");
@@ -227,6 +265,9 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Publish the connection status via mqtt
+     */
     private void publishConnectionStatus() {
         mMqttClient.publishWith()
                 .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + MqttTopics.CONNECTION_STATUS_SUBTOPIC)
@@ -234,6 +275,9 @@ public class ElevatorAlgorithm {
                 .send();
     }
 
+    /**
+     * Resolve elevator requests based on elevator state
+     */
     private void resolveElevatorRequests() {
         // Iterate through elevators and check if control command needs to be sent
         var elevators = mElevatorState.getElevators();
@@ -258,6 +302,12 @@ public class ElevatorAlgorithm {
         mFloorRequestsToBeServiced.clear();
     }
 
+    /**
+     * Check elevator requests
+     * @param elevator The elevator
+     * @param elevatorNum The elevator number
+     * @param floors The floors
+     */
     private void checkElevatorRequests(Elevator elevator, int elevatorNum, Floor[] floors) {
         // Check if there is another request in current direction
         switch (elevator.getDirection()) {
@@ -275,6 +325,12 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Handle upward request (current direction = up)
+     * @param elevator The elevator
+     * @param elevatorNum The elevator number
+     * @param floors The floors
+     */
     private void handleUpwardRequest(Elevator elevator, int elevatorNum, Floor[] floors) {
         int requestedFloor = findNextRequestedFloor(elevator, floors, true);
 
@@ -293,6 +349,12 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Handle downward request (current direction = down)
+     * @param elevator The elevator
+     * @param elevatorNum The elevator number
+     * @param floors The floors
+     */
     private void handleDownwardRequest(Elevator elevator, int elevatorNum, Floor[] floors) {
         int requestedFloor = findNextRequestedFloor(elevator, floors, false);
 
@@ -311,6 +373,12 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Handle uncommitted request (current direction = uncommitted)
+     * @param elevator The elevator
+     * @param elevatorNum The elevator number
+     * @param floors The floors
+     */
     private void handleUncommittedRequest(Elevator elevator, int elevatorNum, Floor[] floors) {
         int requestedFloorUp = findNextRequestedFloor(elevator, floors, true);
         int requestedFloorDown = findNextRequestedFloor(elevator, floors, false);
@@ -344,6 +412,13 @@ public class ElevatorAlgorithm {
         }
     }
 
+    /**
+     * Find next requested floor based on elevator and floor buttons
+     * @param elevator The elevator
+     * @param floors The floors
+     * @param movingUp elevator currently moving up
+     * @return The next requested floor number
+     */
     private int findNextRequestedFloor(Elevator elevator, Floor[] floors, boolean movingUp) {
         int requestedFloor = elevator.getCurrentFloor();
         for (int i = (movingUp ? requestedFloor + 1 : requestedFloor - 1);
@@ -386,12 +461,22 @@ public class ElevatorAlgorithm {
         return requestedFloor;
     }
 
+    /**
+     * Send target floor to elevator
+     * @param elevatorNumber The elevator number
+     * @param targetFloor The target floor
+     */
     private void sendElevatorTargetFloor(int elevatorNumber, int targetFloor) {
         mMqttClient.publishWith()
                 .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/" + elevatorNumber + MqttTopics.TARGET_FLOOR_SUBTOPIC)
                 .payload(String.valueOf(targetFloor).getBytes()).send();
     }
 
+    /**
+     * Send elevator direction to elevator
+     * @param elevatorNumber The elevator number
+     * @param direction The direction
+     */
     private void sendElevatorDirection(int elevatorNumber, int direction) {
         mMqttClient.publishWith()
                 .topic(MqttTopics.ELEVATOR_CONTROL_TOPIC + "/" + elevatorNumber + MqttTopics.DIRECTION_SUBTOPIC)
