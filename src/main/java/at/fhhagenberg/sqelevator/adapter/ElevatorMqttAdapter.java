@@ -11,6 +11,7 @@ import io.vavr.control.Either;
 
 import java.io.IOException;
 import java.rmi.Naming;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Properties;
 import java.util.Timer;
@@ -87,9 +88,10 @@ public class ElevatorMqttAdapter {
     /**
      * Run method
      * @param interval The polling interval
-     * @throws Exception if run fails
+     * @throws RemoteException if plc gets disconnected
+     * @throws InterruptedException if the thread gets interrupted
      */
-    public void run(int interval) throws Exception {
+    public void run(int interval) throws RemoteException, InterruptedException {
         // if run method is called -> RMI connected
         mRmiIsConnected = true;
 

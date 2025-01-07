@@ -107,7 +107,7 @@ public class Elevator {
      */
     public boolean getElevatorButton(int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException(cErrFloorNumber);
+            throw new IllegalArgumentException(ERR_FLOOR_NUMBER);
         }
 
         return mButtonStatus[floor];
@@ -121,7 +121,7 @@ public class Elevator {
      */
     public boolean setElevatorButton(boolean buttonStatus, int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException(cErrFloorNumber);
+            throw new IllegalArgumentException(ERR_FLOOR_NUMBER);
         }
 
         if (buttonStatus != mButtonStatus[floor]) {
@@ -171,7 +171,7 @@ public class Elevator {
      */
     public boolean setCurrentFloor(int currentFloor) {
         if(currentFloor < 0 || currentFloor >= mNumOfFloors) {
-            throw new IllegalArgumentException(cErrFloorNumber);
+            throw new IllegalArgumentException(ERR_FLOOR_NUMBER);
         }
 
         if (currentFloor != mCurrentFloor) {
@@ -196,7 +196,7 @@ public class Elevator {
      */
     public boolean setTargetFloor(int targetFloor) {
         if(targetFloor < 0 || targetFloor >= mNumOfFloors){
-            throw new IllegalArgumentException(cErrFloorNumber);
+            throw new IllegalArgumentException(ERR_FLOOR_NUMBER);
         }
 
         if (targetFloor != mTargetFloor) {
@@ -213,7 +213,7 @@ public class Elevator {
      */
     public boolean getFloorService(int floor) {
         if(floor < 0 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException(cErrFloorNumber);
+            throw new IllegalArgumentException(ERR_FLOOR_NUMBER);
         }
 
         return mFloorService[floor];
@@ -227,7 +227,7 @@ public class Elevator {
      */
     public boolean setFloorService(boolean service, int floor) {
         if(floor < 1 || floor >= mNumOfFloors) {
-            throw new IllegalArgumentException(cErrFloorNumber);
+            throw new IllegalArgumentException(ERR_FLOOR_NUMBER);
         }
 
         if (service != mFloorService[floor]) {
