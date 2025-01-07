@@ -18,35 +18,45 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test class for the elevator algorithm
+ */
 @Testcontainers
 public class ElevatorAlgorithmTest {
+    /** The HiveMQ container */
     @Container
     static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
+    /** The MQTT publisher */
     private Mqtt5AsyncClient publisher;
-    private Mqtt5AsyncClient mqttClient;
 
+    /** The adapter to be tested */
     ElevatorAlgorithm client;
 
+    /** The connection status */
     private boolean connected = false;
 
+    /** Set up the test environment in general */
     @BeforeAll
     public static void setUpAll() {
         hivemqCe.start();
     }
 
+    /** Tear down the test environment */
     @AfterAll
     public static void tearDownAll() { hivemqCe.stop(); }
 
+    /** Reset the test environment after each test */
     @AfterEach
     void tearDown() {
         publisher.disconnect();
     }
 
+    /** Set up the test environment for each test */
     @BeforeEach
     public void setUp() throws Exception {
 
-        mqttClient = Mqtt5Client.builder()
+        Mqtt5AsyncClient mqttClient = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost(hivemqCe.getHost())
                 .serverPort(hivemqCe.getMqttPort())
@@ -116,11 +126,18 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test if the connection status is retained
+     */
     @Test
-    public void testConnectionStatus() throws Exception {
+    public void testConnectionStatus() {
         assertTrue(connected);
     }
 
+    /**
+     * Test uncommited -> up -> uncommited
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedUpUncommitted() throws Exception {
         assertTrue(connected);
@@ -207,6 +224,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> up -> up
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedUpUp() throws Exception {
         assertTrue(connected);
@@ -298,6 +319,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> up -> down
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedUpDown() throws Exception {
         assertTrue(connected);
@@ -389,6 +414,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> down -> uncommited
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedDownUncommitted() throws Exception {
         assertTrue(connected);
@@ -483,6 +512,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> down -> down
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedDownDown() throws Exception {
         assertTrue(connected);
@@ -582,6 +615,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> floor up -> floor down
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedFloorUpFloorDownRequested() throws Exception {
         assertTrue(connected);
@@ -681,6 +718,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> floor down -> floor up
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedFloorDownFloorUpRequested() throws Exception {
         assertTrue(connected);
@@ -780,6 +821,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> floor up -> floor up
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedFloorUpFloorUpRequested() throws Exception {
         assertTrue(connected);
@@ -879,6 +924,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test uncommited -> floor down -> floor down
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUncommittedFloorDownFloorDownRequested() throws Exception {
         assertTrue(connected);
@@ -978,6 +1027,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test up -> floor up
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUpFloorUpRequested() throws Exception {
         assertTrue(connected);
@@ -1086,6 +1139,10 @@ public class ElevatorAlgorithmTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test up -> floor up (floor not serviced)
+     * @throws Exception if algorithm encounters an error
+     */
     @Test
     public void testUpFloorUpRequestedFloorNotServiced() throws Exception {
         assertTrue(connected);

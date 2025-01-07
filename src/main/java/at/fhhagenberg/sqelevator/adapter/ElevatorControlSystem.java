@@ -20,7 +20,7 @@ public class ElevatorControlSystem {
     private Elevator[] mElevators = null;
     /**< The floors. */
     private Floor[] mFloors = null;
-
+    /** The height of a floor. */
     private int mFloorHeight;
 
     /**< The set of topics which need to be updated. */
@@ -84,7 +84,8 @@ public class ElevatorControlSystem {
     }
 
     /**
-     *
+     * Initializes the data via the PLC. Gets called once at startup.
+     * @throws RemoteException if the PLC communication fails.
      */
     public void initialUpdateDataViaPLC() throws RemoteException {
         if (mElevators == null) {
@@ -163,6 +164,13 @@ public class ElevatorControlSystem {
             mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.WEIGHT_SUBTOPIC));
         }
 
+        updateElevatorFloorSpecificData(elevatorNumber);
+    }
+
+    /**
+     * Updates elevator data specific to a floor
+     */
+    private void updateElevatorFloorSpecificData(int elevatorNumber) throws RemoteException {
         for (int i = 0; i < mFloors.length; ++i) {
             if (mElevators[elevatorNumber].setElevatorButton(mPLC.getElevatorButton(elevatorNumber, i), i)) {
                 mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i), Either.right(mPLC.getElevatorButton(elevatorNumber, i)));

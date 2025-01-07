@@ -26,33 +26,55 @@ import java.util.logging.Logger;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for the elevator mqtt adapter with faulty RMI connection
+ */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @Testcontainers
 public class RMIDisconnectElevatorMqttAdapterTest {
+    /** The HiveMQ container */
     @Container
     static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
+    /** The PLC mock */
     @Mock
     IElevator plc;
 
+    /** The MQTT publisher */
     private Mqtt5AsyncClient publisher;
-    private Mqtt5AsyncClient mqttClient;
+    /** The adapter to be tested */
     ElevatorMqttAdapter client;
 
+    /** The test thread */
     private Thread testThread;
 
+    /** The logger for the test */
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
+    /**
+     * Set up the test environment before all tests
+     */
     @BeforeAll
-    public static void setUpAll() { hivemqCe.start(); }
+    public static void setUpAll() {
+        hivemqCe.start();
+    }
 
+    /**
+     * Tear down the test environment after all tests
+     */
     @AfterAll
-    public static void tearDownAll() { hivemqCe.stop(); }
+    public static void tearDownAll() {
+        hivemqCe.stop();
+    }
 
+    /**
+     * Set up the test environment before each test
+     * @throws Exception if adapter encounters an error
+     */
     @BeforeEach
     public void setUp() throws Exception {
-        mqttClient = Mqtt5Client.builder()
+        Mqtt5AsyncClient mqttClient = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost(hivemqCe.getHost())
                 .serverPort(hivemqCe.getMqttPort())
@@ -65,9 +87,6 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .buildAsync();
 
         publisher.connect().get(10, TimeUnit.SECONDS);
-        publisher.publishWith()
-                .topic("elevator_control/connection_status").retain(true)
-                .payload(String.valueOf(true).getBytes()).send();
 
         when(plc.getElevatorNum()).thenReturn(1);
         when(plc.getElevatorFloor(0)).thenReturn(1);
@@ -105,6 +124,10 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         client = new ElevatorMqttAdapter(plc, mqttClient);
     }
 
+    /**
+     * Tear down the test environment after each test
+     * @throws Exception if thread join fails
+     */
     @AfterEach
     void tearDown() throws Exception {
         if (testThread != null) {
@@ -113,6 +136,10 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         }
     }
 
+    /**
+     * Test case for remote exception on get elevator button
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRemoteExceptionOnUpdateECS() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenThrow(new RemoteException("RemoteException thrown!"));
@@ -130,13 +157,17 @@ public class RMIDisconnectElevatorMqttAdapterTest {
             }
         });
         testThread.start();
-        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
 
         testThread.interrupt();
         testThread.join();
     }
 
+    /**
+     * Test case for remote exception on set direction
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRemoteExceptionOnSetDirection() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenReturn(false);
@@ -159,13 +190,17 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .payload("0".getBytes())
                 .send();
         testThread.start();
-        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
 
         testThread.interrupt();
         testThread.join();
     }
 
+    /**
+     * Test case for remote exception on set target
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRemoteExceptionOnSetTarget() throws Exception {
         when(plc.getElevatorButton(0, 1)).thenReturn(false);
@@ -189,20 +224,31 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .payload("0".getBytes())
                 .send();
         testThread.start();
-        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
+        await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
 
         testThread.interrupt();
         testThread.join();
     }
 
+    /** Console handler for capturing logs */
     private static class CaptureLoggingConsoleHandler extends ConsoleHandler {
+        /** The byte array output stream */
         private final ByteArrayOutputStream byteArrayOutputStream;
 
+        /**
+         * Constructor for the console handler
+         * @param byteArrayOutputStream the byte array output stream
+         */
         public CaptureLoggingConsoleHandler(ByteArrayOutputStream byteArrayOutputStream) {
             this.byteArrayOutputStream = byteArrayOutputStream;
         }
 
+        /**
+         * Publish the log record
+         * @param logRecord  description of the log event. A null record is
+         *                 silently ignored and is not published
+         */
         @Override
         public void publish(java.util.logging.LogRecord logRecord) {
             try {
@@ -212,11 +258,18 @@ public class RMIDisconnectElevatorMqttAdapterTest {
             }
         }
 
+        /**
+         * Flush the console handler
+         */
         @Override
         public void flush() {
             // no-op
         }
 
+        /**
+         * Close the console handler
+         * @throws SecurityException if closing the handler fails (in this case never)
+         */
         @Override
         public void close() throws SecurityException {
             // no-op

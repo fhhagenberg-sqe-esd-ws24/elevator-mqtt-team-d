@@ -51,6 +51,4 @@ public class MqttTopics {
     public static final String BUTTON_UP_SUBTOPIC = "/button_up";
     /** The subtopic for the button down. */
     public static final String BUTTON_DOWN_SUBTOPIC = "/button_down";
-
-
 }

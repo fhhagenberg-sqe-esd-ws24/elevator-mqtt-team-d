@@ -24,39 +24,53 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test class for the elevator mqtt adapter
+ */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @Testcontainers
 public class ElevatorMqttAdapterTest {
+    /** The HiveMQ container */
     @Container
     static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
+    /** The PLC mock */
     @Mock
     IElevator plc;
 
+    /** The MQTT publisher */
     private Mqtt5AsyncClient publisher;
-    private Mqtt5AsyncClient mqttClient;
+    /** The adapter to be tested */
     ElevatorMqttAdapter client;
 
+    /**
+     * Set up the test environment in general
+     */
     @BeforeAll
     public static void setUpAll() {
         hivemqCe.start();
     }
 
+    /**
+     * Tear down the test environment
+     */
     @AfterAll
     public static void tearDownAll() {
         hivemqCe.stop();
     }
 
+    /**
+     * Set up the test environment for each test
+     */
     @BeforeEach
     public void setUp() throws Exception {
         // set up MqttClient
-
-        mqttClient = Mqtt5Client.builder()
-            .identifier(UUID.randomUUID().toString())
-            .serverHost(hivemqCe.getHost())
-            .serverPort(hivemqCe.getMqttPort())
-            .buildAsync();
+        Mqtt5AsyncClient mqttClient = Mqtt5Client.builder()
+                .identifier(UUID.randomUUID().toString())
+                .serverHost(hivemqCe.getHost())
+                .serverPort(hivemqCe.getMqttPort())
+                .buildAsync();
 
         publisher = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
@@ -106,11 +120,18 @@ public class ElevatorMqttAdapterTest {
         client = new ElevatorMqttAdapter(plc, mqttClient);
     }
 
+    /**
+     * Reset the test environment for each test
+     */
     @AfterEach
     void tearDown() {
         publisher.disconnect();
     }
 
+    /**
+     * Test if the connection status is retained
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     public void testRetainedTopics() throws Exception {
         Map<String, String> expectedMessages = Map.of(
@@ -154,6 +175,10 @@ public class ElevatorMqttAdapterTest {
         subscriber.disconnect();
     }
 
+    /**
+     * Test if the initial values are sent correctly
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     void testInitialValues() throws Exception {
         Map<String, String> expectedMessages = Map.ofEntries(

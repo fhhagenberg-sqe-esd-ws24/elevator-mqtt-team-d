@@ -18,12 +18,18 @@ import static sqelevator.IElevator.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for testing the ElevatorControlSystem.
+ */
 @ExtendWith(MockitoExtension.class)
 public class ElevatorControlSystemTest {
+    /** The mock for the PLC. */
     @Mock
     IElevator plcMock;
 
+    /** The ElevatorControlSystem to test. */
     ElevatorControlSystem ecs;
+
     /**
      * Set up the test environment.
      */
@@ -96,16 +102,16 @@ public class ElevatorControlSystemTest {
         Elevator[] elevators = ecs.getElevators();
         Floor[] floors = ecs.getFloors();
 
-        assertEquals(elevators[0].getDirection(), ELEVATOR_DIRECTION_UP);
+        assertEquals(ELEVATOR_DIRECTION_UP, elevators[0].getDirection());
         assertTrue(elevators[0].getElevatorButton(0));
-        assertEquals(elevators[0].getElevatorDoorStatus(), ELEVATOR_DOORS_OPEN);
-        assertEquals(elevators[0].getCurrentFloor(), 0);
+        assertEquals(ELEVATOR_DOORS_OPEN, elevators[0].getElevatorDoorStatus());
+        assertEquals(0, elevators[0].getCurrentFloor());
         assertTrue(elevators[0].getFloorService(3));
-        assertEquals(elevators[0].getSpeed(), 10);
-        assertEquals(elevators[0].getWeight(), 100);
-        assertEquals(elevators[0].getCapacity(), 5);
-        assertEquals(elevators[0].getTargetFloor(), 3);
-        assertEquals(elevators[0].getAcceleration(), 30);
+        assertEquals(10, elevators[0].getSpeed());
+        assertEquals(100, elevators[0].getWeight());
+        assertEquals(5, elevators[0].getCapacity());
+        assertEquals(3, elevators[0].getTargetFloor());
+        assertEquals(30, elevators[0].getAcceleration());
 
         assertFalse(floors[0].getButtonDownPressed());
         assertFalse(floors[1].getButtonDownPressed());
@@ -225,16 +231,16 @@ public class ElevatorControlSystemTest {
         Elevator[] elevators = ecs.getElevators();
         Floor[] floors = ecs.getFloors();
 
-        assertEquals(elevators[0].getDirection(), ELEVATOR_DIRECTION_UP);
+        assertEquals(ELEVATOR_DIRECTION_UP, elevators[0].getDirection());
         assertTrue(elevators[0].getElevatorButton(0));
-        assertEquals(elevators[0].getElevatorDoorStatus(), ELEVATOR_DOORS_OPEN);
-        assertEquals(elevators[0].getCurrentFloor(), 0);
+        assertEquals(ELEVATOR_DOORS_OPEN, elevators[0].getElevatorDoorStatus());
+        assertEquals(0, elevators[0].getCurrentFloor());
         assertTrue(elevators[0].getFloorService(3));
-        assertEquals(elevators[0].getSpeed(), 10);
-        assertEquals(elevators[0].getWeight(), 100);
-        assertEquals(elevators[0].getCapacity(), 5);
-        assertEquals(elevators[0].getTargetFloor(), 3);
-        assertEquals(elevators[0].getAcceleration(), 30);
+        assertEquals(10, elevators[0].getSpeed());
+        assertEquals(100, elevators[0].getWeight());
+        assertEquals(5, elevators[0].getCapacity());
+        assertEquals(3, elevators[0].getTargetFloor());
+        assertEquals(30, elevators[0].getAcceleration());
 
         assertFalse(floors[0].getButtonDownPressed());
         assertFalse(floors[1].getButtonDownPressed());
@@ -256,18 +262,18 @@ public class ElevatorControlSystemTest {
         elevators = ecs.getElevators();
         floors = ecs.getFloors();
 
-        assertEquals(elevators[0].getDirection(), ELEVATOR_DIRECTION_UP);
+        assertEquals(ELEVATOR_DIRECTION_UP, elevators[0].getDirection());
         assertTrue(elevators[0].getElevatorButton(0));
-        assertEquals(elevators[0].getElevatorDoorStatus(), ELEVATOR_DOORS_OPEN);
-        assertEquals(elevators[0].getCurrentFloor(), 0);
+        assertEquals(ELEVATOR_DOORS_OPEN, elevators[0].getElevatorDoorStatus());
+        assertEquals(0, elevators[0].getCurrentFloor());
         assertFalse(elevators[0].getFloorService(3));
         assertTrue(elevators[0].getFloorService(0));
         assertTrue(elevators[0].getFloorService(2));
-        assertEquals(elevators[0].getSpeed(), 10);
-        assertEquals(elevators[0].getWeight(), 100);
-        assertEquals(elevators[0].getCapacity(), 5);
-        assertEquals(elevators[0].getTargetFloor(), 3);
-        assertEquals(elevators[0].getAcceleration(), 30);
+        assertEquals(10, elevators[0].getSpeed());
+        assertEquals(100, elevators[0].getWeight());
+        assertEquals(5, elevators[0].getCapacity());
+        assertEquals(3, elevators[0].getTargetFloor());
+        assertEquals(30, elevators[0].getAcceleration());
 
         assertFalse(floors[0].getButtonDownPressed());
         assertFalse(floors[1].getButtonDownPressed());
@@ -277,7 +283,6 @@ public class ElevatorControlSystemTest {
         assertFalse(floors[1].getButtonUpPressed());
         assertFalse(floors[2].getButtonUpPressed());
         assertFalse(floors[3].getButtonUpPressed());
-
 
         verify(plcMock, times(3)).getCommittedDirection(0);
         verify(plcMock, times(3)).getElevatorAccel(0);
@@ -306,6 +311,10 @@ public class ElevatorControlSystemTest {
         verify(plcMock, times(3)).getTarget(0);
     }
 
+    /**
+     * Test the initial update of the data via the PLC.
+     * @throws Exception if PLC call fails
+     */
     @Test
     public void testInitialUpdateElevator() throws Exception {
         when(plcMock.getCommittedDirection(0)).thenReturn(ELEVATOR_DIRECTION_UP);
@@ -365,16 +374,16 @@ public class ElevatorControlSystemTest {
         assertEquals(Either.right(false),s.get("floor/3/button_up"));
         assertEquals(23, s.size());
 
-        assertEquals(elevators[0].getDirection(), ELEVATOR_DIRECTION_UP);
+        assertEquals(ELEVATOR_DIRECTION_UP, elevators[0].getDirection());
         assertTrue(elevators[0].getElevatorButton(0));
-        assertEquals(elevators[0].getElevatorDoorStatus(), ELEVATOR_DOORS_OPEN);
-        assertEquals(elevators[0].getCurrentFloor(), 0);
+        assertEquals(ELEVATOR_DOORS_OPEN, elevators[0].getElevatorDoorStatus());
+        assertEquals(0, elevators[0].getCurrentFloor());
         assertTrue(elevators[0].getFloorService(3));
-        assertEquals(elevators[0].getSpeed(), 10);
-        assertEquals(elevators[0].getWeight(), 100);
-        assertEquals(elevators[0].getCapacity(), 5);
-        assertEquals(elevators[0].getTargetFloor(), 3);
-        assertEquals(elevators[0].getAcceleration(), 30);
+        assertEquals(10, elevators[0].getSpeed());
+        assertEquals(100, elevators[0].getWeight());
+        assertEquals(5, elevators[0].getCapacity());
+        assertEquals(3, elevators[0].getTargetFloor());
+        assertEquals(30, elevators[0].getAcceleration());
 
         assertFalse(floors[0].getButtonDownPressed());
         assertFalse(floors[1].getButtonDownPressed());
