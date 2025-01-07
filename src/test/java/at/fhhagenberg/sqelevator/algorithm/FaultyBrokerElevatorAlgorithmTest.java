@@ -1,6 +1,5 @@
 package at.fhhagenberg.sqelevator.algorithm;
 
-import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,24 +23,38 @@ import java.util.logging.Logger;
 
 import static org.awaitility.Awaitility.await;
 
+/**
+ * Test class for the elevator algorithm with faulty mqtt broker
+ */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 public class FaultyBrokerElevatorAlgorithmTest {
+    /** The algorithm to be tested */
     private ElevatorAlgorithm elevatorAlgorithm;
 
+    /** The MQTT client for the algorithm (mocked in this case) */
     @Mock
     private Mqtt5AsyncClient mockMqttClient;
 
+    /** The test thread */
     private Thread testThread;
 
+    /** The logger for the test */
     private final Logger logger = Logger.getLogger(ElevatorAlgorithm.class.getName());
 
+    /**
+     * Set up the test environment for each test
+     */
     @BeforeEach
     void setUp() {
         when(mockMqttClient.connect()).thenThrow(new RuntimeException("Connection failed")).thenReturn(null);
         elevatorAlgorithm = new ElevatorAlgorithm(mockMqttClient);
     }
 
+    /**
+     * Tear down the test environment after each test
+     * @throws Exception if thread join fails
+     */
     @AfterEach
     void tearDown() throws Exception {
         if (testThread != null) {
@@ -54,6 +67,10 @@ public class FaultyBrokerElevatorAlgorithmTest {
         }
     }
 
+    /**
+     * Test case which tests the run method with a faulty broker connection
+     * @throws Exception if algorithm run fails
+     */
     @Test
     void testRunWithFaultyBrokerConnection() throws Exception {
         ByteArrayOutputStream logStream = new ByteArrayOutputStream();
@@ -77,13 +94,25 @@ public class FaultyBrokerElevatorAlgorithmTest {
         testThread.join();
     }
 
+    /**
+     * Console Handler for capturing logs
+     */
     private static class CaptureLoggingConsoleHandler extends ConsoleHandler {
+        /** The byte array output stream */
         private final ByteArrayOutputStream byteArrayOutputStream;
 
+        /**
+         * Constructor for the console handler
+         * @param byteArrayOutputStream the byte array output stream
+         */
         public CaptureLoggingConsoleHandler(ByteArrayOutputStream byteArrayOutputStream) {
             this.byteArrayOutputStream = byteArrayOutputStream;
         }
 
+        /**
+         * Publish the log record
+         * @param logRecord the log record to publish
+         */
         @Override
         public void publish(java.util.logging.LogRecord logRecord) {
             try {
@@ -93,11 +122,18 @@ public class FaultyBrokerElevatorAlgorithmTest {
             }
         }
 
+        /**
+         * Flush the console handler
+         */
         @Override
         public void flush() {
             // no-op
         }
 
+        /**
+         * Close the console handler
+         * @throws SecurityException if closing the handler fails (in this case never)
+         */
         @Override
         public void close() throws SecurityException {
             // no-op

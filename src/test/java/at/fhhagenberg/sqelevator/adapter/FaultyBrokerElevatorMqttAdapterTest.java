@@ -23,21 +23,32 @@ import sqelevator.IElevator;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for the elevator mqtt adapter with faulty mqtt broker
+ */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 public class FaultyBrokerElevatorMqttAdapterTest {
+    /** The adapter to be tested */
     private ElevatorMqttAdapter adapter;
 
+    /** The MQTT client for the adapter (mocked in this case) */
     @Mock
     private Mqtt5AsyncClient mockMqttClient;
 
+    /** The PLC mock */
     @Mock
     private IElevator plc;
 
+    /** The test thread */
     private Thread testThread;
 
+    /** The logger for the test */
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
+    /**
+     * Set up the test environment for each test
+     */
     @BeforeEach
     void setUp() throws Exception {
         when(plc.getElevatorNum()).thenReturn(1);
@@ -77,6 +88,9 @@ public class FaultyBrokerElevatorMqttAdapterTest {
         adapter = new ElevatorMqttAdapter(plc, mockMqttClient);
     }
 
+    /**
+     * Reset the test environment for each test
+     */
     @AfterEach
     void tearDown() throws Exception {
         if (testThread != null) {
@@ -89,6 +103,10 @@ public class FaultyBrokerElevatorMqttAdapterTest {
         }
     }
 
+    /**
+     * Test case which tests faulty mqtt broker
+     * @throws Exception if adapter encounters an error
+     */
     @Test
     void testRunWithFaultyBrokerConnection() throws Exception {
         when(mockMqttClient.connect()).thenThrow(new RuntimeException("Connection failed")).thenReturn(null);
@@ -114,13 +132,26 @@ public class FaultyBrokerElevatorMqttAdapterTest {
         testThread.join();
     }
 
+    /**
+     * Console Handler for capturing logs
+     */
     private static class CaptureLoggingConsoleHandler extends ConsoleHandler {
+        /** The byte array output stream */
         private final ByteArrayOutputStream byteArrayOutputStream;
 
+        /**
+         * Constructor for the console handler
+         * @param byteArrayOutputStream the byte array output stream
+         */
         public CaptureLoggingConsoleHandler(ByteArrayOutputStream byteArrayOutputStream) {
             this.byteArrayOutputStream = byteArrayOutputStream;
         }
 
+        /**
+         * Publish the log record
+         * @param logRecord  description of the log event. A null record is
+         *                 silently ignored and is not published
+         */
         @Override
         public void publish(java.util.logging.LogRecord logRecord) {
             try {
@@ -130,11 +161,18 @@ public class FaultyBrokerElevatorMqttAdapterTest {
             }
         }
 
+        /**
+         * Flush the console handler
+         */
         @Override
         public void flush() {
             // no-op
         }
 
+        /**
+         * Close the console handler
+         * @throws SecurityException if a security manager exists and if the caller does not have LoggingPermission("control").
+         */
         @Override
         public void close() throws SecurityException {
             // no-op

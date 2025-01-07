@@ -26,18 +26,24 @@ import java.util.logging.Logger;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test class for the elevator mqtt adapter with faulty RMI connection
+ */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @Testcontainers
 public class RMIDisconnectElevatorMqttAdapterTest {
+    /** The HiveMQ container */
     @Container
     static final HiveMQContainer hivemqCe = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
+    /** The PLC mock */
     @Mock
     IElevator plc;
 
+    /** The MQTT publisher */
     private Mqtt5AsyncClient publisher;
-    private Mqtt5AsyncClient mqttClient;
+    /** The adapter to be tested */
     ElevatorMqttAdapter client;
 
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
@@ -50,7 +56,8 @@ public class RMIDisconnectElevatorMqttAdapterTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        mqttClient = Mqtt5Client.builder()
+        /** The MQTT client for the adapter */
+        Mqtt5AsyncClient mqttClient = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost(hivemqCe.getHost())
                 .serverPort(hivemqCe.getMqttPort())

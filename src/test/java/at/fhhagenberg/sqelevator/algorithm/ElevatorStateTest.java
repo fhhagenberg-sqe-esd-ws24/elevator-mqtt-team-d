@@ -7,7 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test class for the elevator state class
+ */
 public class ElevatorStateTest {
+    /**
+     * Test case which tests the constructor with invalid parameters.
+     */
     @Test
     public void ctorElevatorStateInvalidTest() {
         assertThrows(IllegalArgumentException.class, () -> {
@@ -15,6 +21,9 @@ public class ElevatorStateTest {
         });
     }
 
+    /**
+     * Test case which tests the constructor with valid parameters.
+     */
     @Test
     public void ctorElevatorStateValidTest() {
         ElevatorState elevatorState = new ElevatorState(2, 4, 1, new int[] {1, 2});

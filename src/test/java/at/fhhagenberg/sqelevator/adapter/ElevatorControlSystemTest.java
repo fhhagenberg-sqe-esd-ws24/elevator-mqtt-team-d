@@ -23,10 +23,13 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 public class ElevatorControlSystemTest {
+    /** The mock for the PLC. */
     @Mock
     IElevator plcMock;
 
+    /** The ElevatorControlSystem to test. */
     ElevatorControlSystem ecs;
+
     /**
      * Set up the test environment.
      */
