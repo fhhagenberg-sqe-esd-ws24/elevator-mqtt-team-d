@@ -31,7 +31,7 @@ public class Elevator {
     private final boolean[] mFloorService;
 
     /**< Invalid floor number error constant. */
-    private static final String cErrFloorNumber = "Invalid floor number";
+    private static final String ERR_FLOOR_NUMBER = "Invalid floor number";
 
     /**
      * CTor which instantiates all members.
