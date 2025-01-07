@@ -46,6 +46,9 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     /** The adapter to be tested */
     ElevatorMqttAdapter client;
 
+    /** The test thread */
+    private Thread testThread;
+
     /** The logger for the test */
     private final Logger logger = Logger.getLogger(ElevatorMqttAdapter.class.getName());
 
@@ -84,9 +87,6 @@ public class RMIDisconnectElevatorMqttAdapterTest {
                 .buildAsync();
 
         publisher.connect().get(10, TimeUnit.SECONDS);
-        publisher.publishWith()
-                .topic("elevator_control/connection_status").retain(true)
-                .payload(String.valueOf(true).getBytes()).send();
 
         when(plc.getElevatorNum()).thenReturn(1);
         when(plc.getElevatorFloor(0)).thenReturn(1);
@@ -125,6 +125,18 @@ public class RMIDisconnectElevatorMqttAdapterTest {
     }
 
     /**
+     * Tear down the test environment after each test
+     * @throws Exception if thread join fails
+     */
+    @AfterEach
+    void tearDown() throws Exception {
+        if (testThread != null) {
+            testThread.interrupt();
+            testThread.join();
+        }
+    }
+
+    /**
      * Test case for remote exception on get elevator button
      * @throws Exception if adapter encounters an error
      */
@@ -137,9 +149,19 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        client.run(250);
+        testThread = new Thread(() -> {
+            try {
+                client.run(250);
+            } catch (Exception e) {
+                // Suppress interruptions
+            }
+        });
+        testThread.start();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
+
+        testThread.interrupt();
+        testThread.join();
     }
 
     /**
@@ -156,13 +178,23 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        client.run(250);
+        testThread = new Thread(() -> {
+            try {
+                client.run(250);
+            } catch (Exception e) {
+                // Suppress interruptions
+            }
+        });
         publisher.publishWith()
-                .topic("elevator_control/0/direction")
+                .topic("elevator_control/0/direction").retain(true)
                 .payload("0".getBytes())
                 .send();
+        testThread.start();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
+
+        testThread.interrupt();
+        testThread.join();
     }
 
     /**
@@ -179,13 +211,24 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        client.run(250);
+        testThread = new Thread(() -> {
+            try {
+                client.run(250);
+            } catch (Exception e) {
+                // Suppress interruptions
+            }
+        });
+
         publisher.publishWith()
-                .topic("elevator_control/0/target_floor")
+                .topic("elevator_control/0/target_floor").retain(true)
                 .payload("0".getBytes())
                 .send();
+        testThread.start();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
         logger.removeHandler(consoleHandler);
+
+        testThread.interrupt();
+        testThread.join();
     }
 
     /** Console handler for capturing logs */
