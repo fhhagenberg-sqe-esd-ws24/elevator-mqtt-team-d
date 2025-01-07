@@ -147,23 +147,13 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        testThread = new Thread(() -> {
-            try {
-                client.run(250);
-            } catch (Exception e) {
-                // Suppress interruptions
-            }
-        });
+        client.run(250);
         publisher.publishWith()
                 .topic("elevator_control/0/direction").retain(true)
                 .payload("0".getBytes())
                 .send();
-        testThread.start();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
         logger.removeHandler(consoleHandler);
-
-        testThread.interrupt();
-        testThread.join();
     }
 
     @Test
@@ -176,24 +166,13 @@ public class RMIDisconnectElevatorMqttAdapterTest {
         consoleHandler.setLevel(Level.ALL);
         logger.addHandler(consoleHandler);
 
-        testThread = new Thread(() -> {
-            try {
-                client.run(250);
-            } catch (Exception e) {
-                // Suppress interruptions
-            }
-        });
-
+        client.run(250);
         publisher.publishWith()
                 .topic("elevator_control/0/target_floor").retain(true)
                 .payload("0".getBytes())
                 .send();
-        testThread.start();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Trying to reconnect to RMI..."));
         logger.removeHandler(consoleHandler);
-
-        testThread.interrupt();
-        testThread.join();
     }
 
     private static class CaptureLoggingConsoleHandler extends ConsoleHandler {
