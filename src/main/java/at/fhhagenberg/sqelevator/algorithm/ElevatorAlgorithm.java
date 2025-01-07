@@ -441,10 +441,11 @@ public class ElevatorAlgorithm {
     private int findNextRequestedFloorSameDirection(Elevator elevator, Floor[] floors, boolean movingUp) {
         int requestedFloor = elevator.getCurrentFloor();
         boolean floorFound = false;
-        for (int i = (movingUp ? requestedFloor + 1 : requestedFloor - 1);
-             movingUp ? i < floors.length : i >= 0;
-             i = (movingUp ? i + 1 : i - 1)) {
+        int startFloor = movingUp ? requestedFloor + 1 : requestedFloor - 1;
+        int endFloor = movingUp ? floors.length : -1;
+        int step = movingUp ? 1 : -1;
 
+        for (int i = startFloor; i != endFloor; i += step) {
             // Check requested floors from within elevator
             if (elevator.getElevatorButton(i) && elevator.getFloorService(i)) {
                 requestedFloor = i;
