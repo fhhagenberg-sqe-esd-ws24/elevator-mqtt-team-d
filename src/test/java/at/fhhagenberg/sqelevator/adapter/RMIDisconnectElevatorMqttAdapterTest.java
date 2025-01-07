@@ -158,7 +158,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
 
         client.run(250);
         publisher.publishWith()
-                .topic("elevator_control/0/direction").retain(true)
+                .topic("elevator_control/0/direction")
                 .payload("0".getBytes())
                 .send();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
@@ -181,7 +181,7 @@ public class RMIDisconnectElevatorMqttAdapterTest {
 
         client.run(250);
         publisher.publishWith()
-                .topic("elevator_control/0/target_floor").retain(true)
+                .topic("elevator_control/0/target_floor")
                 .payload("0".getBytes())
                 .send();
         await().atMost(15, TimeUnit.SECONDS).until(() -> logStream.toString().contains("Failed to reconnect to RMI!"));
