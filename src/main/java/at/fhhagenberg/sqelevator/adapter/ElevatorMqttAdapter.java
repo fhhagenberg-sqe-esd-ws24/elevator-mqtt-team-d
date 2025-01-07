@@ -9,6 +9,7 @@ import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import io.vavr.control.Either;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -60,7 +61,7 @@ public class ElevatorMqttAdapter {
         try {
             // Read from property file
             Properties properties = new Properties();
-            properties.load(ElevatorMqttAdapter.class.getResourceAsStream("/elevator.properties"));
+            properties.load(new FileInputStream("resources/elevator.properties"));
 
             // Fetch properties
             String plcUrl = properties.getProperty("plc.url");
@@ -297,7 +298,7 @@ public class ElevatorMqttAdapter {
         try {
             // Read from property file
             Properties properties = new Properties();
-            properties.load(ElevatorMqttAdapter.class.getResourceAsStream("/elevator.properties"));
+            properties.load(new FileInputStream("resources/elevator.properties"));
 
             plcUrl = properties.getProperty("plc.url");
         }

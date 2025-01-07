@@ -9,6 +9,7 @@ import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
 import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 
+import java.io.FileInputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +54,7 @@ public class ElevatorAlgorithm {
     public static void main(String[] args) {
         try {
             Properties properties = new Properties();
-            properties.load(ElevatorAlgorithm.class.getResourceAsStream("/elevator.properties"));
+            properties.load(new FileInputStream("resources/elevator.properties"));
 
             // Fetch properties
             String mqttUrl = properties.getProperty("mqtt.url");
