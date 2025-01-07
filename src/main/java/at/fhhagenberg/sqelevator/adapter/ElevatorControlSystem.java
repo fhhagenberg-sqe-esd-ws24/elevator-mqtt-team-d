@@ -164,6 +164,13 @@ public class ElevatorControlSystem {
             mUpdateTopics.remove(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.WEIGHT_SUBTOPIC));
         }
 
+        updateElevatorFloorSpecificData(elevatorNumber);
+    }
+
+    /**
+     * Updates elevator data specific to a floor
+     */
+    private void updateElevatorFloorSpecificData(int elevatorNumber) throws RemoteException {
         for (int i = 0; i < mFloors.length; ++i) {
             if (mElevators[elevatorNumber].setElevatorButton(mPLC.getElevatorButton(elevatorNumber, i), i)) {
                 mUpdateTopics.put(formatElevatorUpdateTopic(elevatorNumber, MqttTopics.FLOOR_REQUESTED_SUBTOPIC, i), Either.right(mPLC.getElevatorButton(elevatorNumber, i)));
